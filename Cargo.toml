@@ -1,0 +1,40 @@
+[package]
+name = "game-2d"
+version = "0.1.0"
+authors = ["Balazs Horvath"]
+edition = "2021"
+
+[dependencies]
+log = "0.4"
+env_logger = "0.11.3"
+rand = "0.8.5"
+aho-corasick = "1.1.3"
+crossterm = "0.27.0"
+winit = { version = "0.30.3", features = ["rwh_05"] }
+wgpu = "0.20.1"
+bytemuck = "1.16.1"
+nanorand = "0.7.0"
+
+[[example]]
+name = "logging_example"
+path = "examples/logging_example.rs"
+
+[[example]]
+name = "aho_corasick_basic"
+path = "examples/aho_corasick_basic.rs"
+
+[[example]]
+name = "aho_corasick_case_insensitive"
+path = "examples/aho_corasick_case_insensitive.rs"
+
+[[example]]
+name = "aho_corasick_stream_replace"
+path = "examples/aho_corasick_stream_replace.rs"
+
+[[example]]
+name = "aho_corasick_standard"
+path = "examples/aho_corasick_standard.rs"
+
+[[example]]
+name = "aho_corasick_leftmost"
+path = "examples/aho_corasick_leftmost.rs"
