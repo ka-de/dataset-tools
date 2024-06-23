@@ -8,6 +8,7 @@ members = [
   "format-json",
   "keep-tokens",
   "remove-extra-file-extensions",
+  "search-for-empty-captions",
 ]
 
 [package]
