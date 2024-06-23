@@ -1,22 +1,19 @@
-
-/**
- * This program uses the Aho-Corasick algorithm for multiple pattern matching.
- * It takes a list of patterns and a string (haystack) to search in.
- * The AhoCorasick::builder() is used to build an AhoCorasick structure with the MatchKind set to LeftmostFirst.
- * This means that in case of overlapping matches, the match occurring first in the string will be returned.
- *
- * In this specific example, the patterns are "Samwise" and "Sam", and the haystack is "Samwise".
- * Since "Samwise" occurs before "Sam" in the haystack, the whole string "Samwise" will be highlighted.
- *
- * The matches are stored in a vector, and each match is a tuple containing the pattern ID and the start and end indices of the match in the haystack.
- *
- * A HashMap is used to map each pattern ID to a color. The colors are randomly chosen from a predefined array.
- *
- * The program then iterates over the matches, and for each match, it prints the part of the haystack before the match in the default color,
- * then it prints the match in its assigned color, and finally resets the color.
- *
- * After all matches have been processed, it prints the rest of the haystack in the default color.
- */
+/// * This program uses the Aho-Corasick algorithm for multiple pattern matching.
+///  * It takes a list of patterns and a string (haystack) to search in.
+///  * The AhoCorasick::builder() is used to build an AhoCorasick structure with the MatchKind set to LeftmostFirst.
+///  * This means that in case of overlapping matches, the match occurring first in the string will be returned.
+///  *
+///  * In this specific example, the patterns are "Samwise" and "Sam", and the haystack is "Samwise".
+///  * Since "Samwise" occurs before "Sam" in the haystack, the whole string "Samwise" will be highlighted.
+///  *
+///  * The matches are stored in a vector, and each match is a tuple containing the pattern ID and the start and end indices of the match in the haystack.
+///  *
+///  * A HashMap is used to map each pattern ID to a color. The colors are randomly chosen from a predefined array.
+///  *
+///  * The program then iterates over the matches, and for each match, it prints the part of the haystack before the match in the default color,
+///  * then it prints the match in its assigned color, and finally resets the color.
+///  *
+///  * After all matches have been processed, it prints the rest of the haystack in the default color.
 
 use aho_corasick::{ AhoCorasick, MatchKind };
 use crossterm::{ style::{ Color, Print, ResetColor, SetForegroundColor }, ExecutableCommand };

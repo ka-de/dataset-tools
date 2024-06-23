@@ -24,6 +24,7 @@ walkdir = "2.5.0"
 regex = "1.10.5"
 tabled = "0.15.0"
 nalgebra = "0.32.6"
+approx = "0.5.1"
 
 [[bin]]
 name = "format-json"

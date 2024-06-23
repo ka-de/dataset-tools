@@ -1,7 +1,4 @@
-
-/**
- * Generating a number with a thread-local RNG
- */
+/// * Generating a number with a thread-local RNG
 
 use nanorand::Rng;
 

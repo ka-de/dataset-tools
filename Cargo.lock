@@ -343,6 +343,7 @@ name = "dataset-tools-rs"
 version = "0.1.0"
 dependencies = [
  "aho-corasick",
+ "approx",
  "bytemuck 1.16.1 (git+https://github.com/ka-de/bytemuck)",
  "crossterm",
  "env_logger",

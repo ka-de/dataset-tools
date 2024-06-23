@@ -1,18 +1,15 @@
-
-/**
- * This program uses the Aho-Corasick algorithm to find patterns in a given string (haystack).
- * The patterns and the haystack are defined in the main function.
- *
- * The AhoCorasick::new function is used to create a new AhoCorasick structure that will be used to find the patterns in the haystack.
- * If a match is found, the details of the match (pattern id, start and end indices) are stored in a vector.
- *
- * The program also uses the crossterm crate to color the matched patterns in the terminal output.
- * A HashMap is used to map each pattern id to a color. If a pattern id does not have a corresponding color in the map, a random color is chosen from a predefined array of colors.
- *
- * The program then iterates over the matches, and for each match, it prints the part of the haystack before the match in the default color, the match in its corresponding color, and then resets the color.
- *
- * Finally, the program prints the remaining part of the haystack after the last match.
- */
+/// * This program uses the Aho-Corasick algorithm to find patterns in a given string (haystack).
+///  * The patterns and the haystack are defined in the main function.
+///  *
+///  * The AhoCorasick::new function is used to create a new AhoCorasick structure that will be used to find the patterns in the haystack.
+///  * If a match is found, the details of the match (pattern id, start and end indices) are stored in a vector.
+///  *
+///  * The program also uses the crossterm crate to color the matched patterns in the terminal output.
+///  * A HashMap is used to map each pattern id to a color. If a pattern id does not have a corresponding color in the map, a random color is chosen from a predefined array of colors.
+///  *
+///  * The program then iterates over the matches, and for each match, it prints the part of the haystack before the match in the default color, the match in its corresponding color, and then resets the color.
+///  *
+///  * Finally, the program prints the remaining part of the haystack after the last match.
 
 use aho_corasick::AhoCorasick;
 use crossterm::{ style::{ Color, Print, ResetColor, SetForegroundColor }, ExecutableCommand };

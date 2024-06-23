@@ -1,7 +1,4 @@
-
-/**
- * Generating a number with an initialized RNG
- */
+/// * Generating a number with an initialized RNG
 
 use nanorand::{ Rng, WyRand };
 

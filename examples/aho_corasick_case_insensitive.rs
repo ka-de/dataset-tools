@@ -1,23 +1,20 @@
-
-/**
- * This program uses the Aho-Corasick algorithm to find and highlight multiple patterns in a given text.
- *
- * The `main` function does the following:
- * 1. Defines a list of patterns and a text string (haystack) to search in.
- * 2. Builds an AhoCorasick struct with the patterns, enabling case-insensitive search.
- * 3. Iterates over the matches found in the haystack, storing each match's pattern ID and start/end indices.
- * 4. Defines a color map to associate each pattern ID with a color.
- * 5. Defines an array of colors to be used.
- * 6. Iterates over the matches, printing the text from the last match's end to the current match's start in default color.
- * 7. Prints the matched text in the color associated with its pattern ID.
- * 8. Resets the color back to default after printing each match.
- * 9. Finally, prints the remaining text after the last match in default color.
- *
- * The color for each pattern ID is chosen randomly from the defined color array.
- * If a color has already been chosen for a pattern ID, it is reused for subsequent matches of the same pattern.
- *
- * This program requires the `aho_corasick`, `crossterm`, and `rand` crates.
- */
+/// * This program uses the Aho-Corasick algorithm to find and highlight multiple patterns in a given text.
+///  *
+///  * The `main` function does the following:
+///  * 1. Defines a list of patterns and a text string (haystack) to search in.
+///  * 2. Builds an AhoCorasick struct with the patterns, enabling case-insensitive search.
+///  * 3. Iterates over the matches found in the haystack, storing each match's pattern ID and start/end indices.
+///  * 4. Defines a color map to associate each pattern ID with a color.
+///  * 5. Defines an array of colors to be used.
+///  * 6. Iterates over the matches, printing the text from the last match's end to the current match's start in default color.
+///  * 7. Prints the matched text in the color associated with its pattern ID.
+///  * 8. Resets the color back to default after printing each match.
+///  * 9. Finally, prints the remaining text after the last match in default color.
+///  *
+///  * The color for each pattern ID is chosen randomly from the defined color array.
+///  * If a color has already been chosen for a pattern ID, it is reused for subsequent matches of the same pattern.
+///  *
+///  * This program requires the `aho_corasick`, `crossterm`, and `rand` crates.
 
 use aho_corasick::AhoCorasick;
 use crossterm::{ style::{ Color, Print, ResetColor, SetForegroundColor }, ExecutableCommand };
