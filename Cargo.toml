@@ -25,6 +25,7 @@ regex = "1.10.5"
 tabled = "0.15.0"
 nalgebra = "0.32.6"
 approx = "0.5.1"
+plotters = "0.3.6"
 
 [[bin]]
 name = "keep-tokens"
@@ -41,6 +42,18 @@ path = "src/check-for-attributes/main.rs"
 [[bin]]
 name = "convert-e621-json-to-caption"
 path = "src/convert-e621-json-to-caption/main.rs"
+
+[[example]]
+name = "slerp_plot"
+path = "examples/slerp_plot.rs"
+
+[[example]]
+name = "slerp_eased_out_cubic"
+path = "examples/slerp_eased_out_cubic.rs"
+
+[[example]]
+name = "slerp_clamped"
+path = "examples/slerp_clamped.rs"
 
 [[example]]
 name = "slerp"
