@@ -1,3 +1,13 @@
+[workspace]
+members = [
+  "keep-tokens",
+  "format-json",
+  "check-for-attributes",
+  "convert-e621-json-to-caption",
+  "examples",
+  "common",
+]
+
 [package]
 name = "dataset-tools-rs"
 version = "0.1.0"
@@ -26,6 +36,7 @@ tabled = "0.15.0"
 nalgebra = "0.32.6"
 approx = "0.5.1"
 plotters = "0.3.6"
+colorous = "1.0.14"
 
 [[bin]]
 name = "keep-tokens"

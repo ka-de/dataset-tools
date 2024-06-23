@@ -303,6 +303,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b6a852b24ab71dffc585bcb46eaf7959d175cb865a7152e35b348d1b2960422"
 
 [[package]]
+name = "colorous"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f06d1dcee094f7b58bef5c0b6abb4f9dc1cb3638f22113fb0f2c7a7dd1b73bd"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -436,6 +442,7 @@ dependencies = [
  "aho-corasick",
  "approx",
  "bytemuck 1.16.1 (git+https://github.com/ka-de/bytemuck)",
+ "colorous",
  "crossterm",
  "env_logger",
  "image 0.25.1",
