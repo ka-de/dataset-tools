@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
   "check-for-attributes",
   "check-for-unwrap",
@@ -25,3 +26,11 @@ serde_json = "1.0.117"
 safetensors = "0.4.3"
 memmap2 = "0.9.4"
 anyhow = "1.0.86"
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
