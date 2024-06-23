@@ -1,24 +1,22 @@
+/// * This script is used for processing JSON files in a directory and its subdirectories.
+///  * It reads each JSON file, extracts the "post" data, and creates a caption file with the post's rating and tags.
+///  *
+///  * The main functions are:
+///  * - `is_hidden`: Checks if a directory entry is hidden.
+///  * - `should_ignore_tag`: Checks if a tag should be ignored based on the `IGNORED_TAGS` constant.
+///  * - `process_tags`: Processes the tags from a JSON object and returns a vector of processed tags.
+///  * - `process_file`: Processes a single JSON file. It opens the file, reads the JSON data, and creates a caption file with the post's rating and tags.
+///  * - `recursive_process`: Recursively processes all JSON files in a directory and its subdirectories.
+///  * - `main`: The entry point of the script. It sets the root directory and calls `recursive_process` to start the processing.
+///  *
+///  * Note: This script uses the `serde_json` library for parsing JSON data, the `regex` library for regular expressions, and the `walkdir` library for walking through directories.
+
 use std::fs::File;
 use std::io::{ BufReader, Write };
 use std::path::{ Path, PathBuf };
 use regex::Regex;
 use serde_json::Value;
 use walkdir::{ WalkDir, DirEntry };
-
-/**
- * This script is used for processing JSON files in a directory and its subdirectories.
- * It reads each JSON file, extracts the "post" data, and creates a caption file with the post's rating and tags.
- *
- * The main functions are:
- * - `is_hidden`: Checks if a directory entry is hidden.
- * - `should_ignore_tag`: Checks if a tag should be ignored based on the `IGNORED_TAGS` constant.
- * - `process_tags`: Processes the tags from a JSON object and returns a vector of processed tags.
- * - `process_file`: Processes a single JSON file. It opens the file, reads the JSON data, and creates a caption file with the post's rating and tags.
- * - `recursive_process`: Recursively processes all JSON files in a directory and its subdirectories.
- * - `main`: The entry point of the script. It sets the root directory and calls `recursive_process` to start the processing.
- *
- * Note: This script uses the `serde_json` library for parsing JSON data, the `regex` library for regular expressions, and the `walkdir` library for walking through directories.
- */
 
 /// Define tags to be ignored using regular expressions for exact matching
 const IGNORED_TAGS: [&str; 1] = [r"\bconditional_dnp\b"];

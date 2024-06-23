@@ -194,6 +194,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b236fc92302c97ed75b38da1f4917b5cdda4984745740f153a5d3059e48d725e"
 
 [[package]]
+name = "bytemuck"
+version = "1.16.1"
+source = "git+https://github.com/ka-de/bytemuck#240f73f1b49ebaabdf545882aae3bb04502f74e4"
+dependencies = [
+ "bytemuck_derive",
+]
+
+[[package]]
+name = "bytemuck_derive"
+version = "1.7.0"
+source = "git+https://github.com/ka-de/bytemuck#240f73f1b49ebaabdf545882aae3bb04502f74e4"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.67",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -325,7 +343,7 @@ name = "dataset-tools-rs"
 version = "0.1.0"
 dependencies = [
  "aho-corasick",
- "bytemuck",
+ "bytemuck 1.16.1 (git+https://github.com/ka-de/bytemuck)",
  "crossterm",
  "env_logger",
  "image 0.25.1",
@@ -501,7 +519,7 @@ version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5690139d2f55868e080017335e4b94cb7414274c74f1669c84fb5feba2c9f69d"
 dependencies = [
- "bytemuck",
+ "bytemuck 1.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder",
  "color_quant",
  "jpeg-decoder",
@@ -515,7 +533,7 @@ version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd54d660e773627692c524beaad361aca785a4f9f5730ce91f42aabe5bce3d11"
 dependencies = [
- "bytemuck",
+ "bytemuck 1.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder",
  "color_quant",
  "exr",
@@ -990,7 +1008,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f6d64c71eb498fe9eae14ce4ec935c555749aef511cca85b5568910d6e48001"
 dependencies = [
- "bytemuck",
+ "bytemuck 1.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1152,7 +1170,7 @@ version = "0.8.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05aaa8004b64fd573fc9d002f4e632d51ad4f026c2b5ba95fcb6c2f32c2c47d8"
 dependencies = [
- "bytemuck",
+ "bytemuck 1.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
