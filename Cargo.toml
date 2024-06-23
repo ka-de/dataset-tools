@@ -12,22 +12,6 @@ version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"
 
-[[bin]]
-name = "keep-tokens"
-path = "keep-tokens/src/main.rs"
-
-[[bin]]
-name = "format-json"
-path = "format-json/src/main.rs"
-
-[[bin]]
-name = "check-for-attributes"
-path = "check-for-attributes/src/main.rs"
-
-[[bin]]
-name = "convert-e621-json-to-caption"
-path = "convert-e621-json-to-caption/src/main.rs"
-
 [dependencies]
 regex = "1.10.5"
 walkdir = "2.5.0"
