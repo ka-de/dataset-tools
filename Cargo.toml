@@ -1,9 +1,13 @@
 [workspace]
 members = [
-  "keep-tokens",
-  "format-json",
   "check-for-attributes",
+  "check-for-unwrap",
   "convert-e621-json-to-caption",
+  "create-empty-caption-files",
+  "extract-metadata",
+  "format-json",
+  "keep-tokens",
+  "remove-extra-file-extensions",
 ]
 
 [package]
@@ -17,3 +21,6 @@ regex = "1.10.5"
 walkdir = "2.5.0"
 crossterm = "0.27.0"
 serde_json = "1.0.117"
+safetensors = "0.4.3"
+memmap2 = "0.9.4"
+anyhow = "1.0.86"

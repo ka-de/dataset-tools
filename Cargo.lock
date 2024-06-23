@@ -12,6 +12,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.86"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
+
+[[package]]
 name = "autocfg"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -39,11 +45,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-for-unwrap"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
+ "regex",
+ "walkdir",
+]
+
+[[package]]
 name = "convert-e621-json-to-caption"
 version = "0.1.0"
 dependencies = [
  "regex",
  "serde_json",
+ "walkdir",
+]
+
+[[package]]
+name = "create-empty-caption-files"
+version = "0.1.0"
+dependencies = [
  "walkdir",
 ]
 
@@ -76,8 +98,22 @@ dependencies = [
 name = "dataset-tools-rs"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "crossterm",
+ "memmap2",
  "regex",
+ "safetensors",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
+name = "extract-metadata"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "memmap2",
+ "safetensors",
  "serde_json",
  "walkdir",
 ]
@@ -130,6 +166,15 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
+
+[[package]]
+name = "memmap2"
+version = "0.9.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe751422e4a8caa417e13c3ea66452215d7d63e19e604f4980461212f3ae1322"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "mio"
@@ -223,10 +268,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
+name = "remove-extra-file-extensions"
+version = "0.1.0"
+dependencies = [
+ "walkdir",
+]
+
+[[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
+
+[[package]]
+name = "safetensors"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ced76b22c7fba1162f11a5a75d9d8405264b467a07ae0c9c29be119b9297db9"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "same-file"
