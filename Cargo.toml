@@ -4,8 +4,6 @@ members = [
   "format-json",
   "check-for-attributes",
   "convert-e621-json-to-caption",
-  "examples",
-  "common",
 ]
 
 [package]
@@ -14,110 +12,24 @@ version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"
 
-[dependencies]
-log = "0.4.21"
-env_logger = "0.11.3"
-rand = { version = "0.8.5", features = ["small_rng"] }
-aho-corasick = "1.1.3"
-crossterm = "0.27.0"
-#winit = { version = "0.30.3", features = ["rwh_05"] }
-#wgpu = "0.20.1"
-bytemuck = { git = "https://github.com/ka-de/bytemuck", default-features = false, features = [
-  "derive",
-] }
-nanorand = "0.7.0"
-kmeans_colors = "0.6.0"
-image = "0.25.1"
-palette = "0.7.6"
-serde_json = "1.0.117"
-walkdir = "2.5.0"
-regex = "1.10.5"
-tabled = "0.15.0"
-nalgebra = "0.32.6"
-approx = "0.5.1"
-plotters = "0.3.6"
-colorous = "1.0.14"
-
 [[bin]]
 name = "keep-tokens"
-path = "src/keep-tokens/main.rs"
+path = "keep-tokens/src/main.rs"
 
 [[bin]]
 name = "format-json"
-path = "src/format-json/main.rs"
+path = "format-json/src/main.rs"
 
 [[bin]]
 name = "check-for-attributes"
-path = "src/check-for-attributes/main.rs"
+path = "check-for-attributes/src/main.rs"
 
 [[bin]]
 name = "convert-e621-json-to-caption"
-path = "src/convert-e621-json-to-caption/main.rs"
+path = "convert-e621-json-to-caption/src/main.rs"
 
-[[example]]
-name = "slerp_plot"
-path = "examples/slerp_plot.rs"
-
-[[example]]
-name = "slerp_eased_out_cubic"
-path = "examples/slerp_eased_out_cubic.rs"
-
-[[example]]
-name = "slerp_clamped"
-path = "examples/slerp_clamped.rs"
-
-[[example]]
-name = "slerp"
-path = "examples/slerp.rs"
-
-[[example]]
-name = "resource_manager"
-path = "examples/resource_manager.rs"
-
-[[example]]
-name = "bytemucking"
-path = "examples/bytemucking.rs"
-
-[[example]]
-name = "monomorphism"
-path = "examples/monomorphism.rs"
-
-[[example]]
-name = "binary_search"
-path = "examples/binary_search.rs"
-
-[[example]]
-name = "nanorand_initialized_rng"
-path = "examples/nanorand_initialized_rng.rs"
-
-[[example]]
-name = "nanorand_thread-local_rng"
-path = "examples/nanorand_thread-local_rng.rs"
-
-[[example]]
-name = "logging_example"
-path = "examples/logging_example.rs"
-
-[[example]]
-name = "aho_corasick_basic"
-path = "examples/aho_corasick_basic.rs"
-
-[[example]]
-name = "aho_corasick_case_insensitive"
-path = "examples/aho_corasick_case_insensitive.rs"
-
-[[example]]
-name = "aho_corasick_stream_replace"
-path = "examples/aho_corasick_stream_replace.rs"
-
-[[example]]
-name = "aho_corasick_standard"
-path = "examples/aho_corasick_standard.rs"
-
-[[example]]
-name = "aho_corasick_leftmost"
-path = "examples/aho_corasick_leftmost.rs"
-
-[[example]]
-name = "kmeans_colors"
-path = "examples/kmeans_colors.rs"
+[dependencies]
+regex = "1.10.5"
+walkdir = "2.5.0"
+crossterm = "0.27.0"
+serde_json = "1.0.117"

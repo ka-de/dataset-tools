@@ -1,10 +1,8 @@
 [package]
-name = "convert-e621-json-to-caption"
+name = "keep-tokens"
 version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"
 
 [dependencies]
-regex = "1.10.5"
 walkdir = "2.5.0"
-serde_json = "1.0.117"
