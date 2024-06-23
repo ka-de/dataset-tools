@@ -31,7 +31,7 @@ fn main() {
         let path = entry.path();
         // If the file is a JSON file, format it
         if path.extension().unwrap_or_default() == "json" {
-            if let Err(e) = format_json_file(&path) {
+            if let Err(e) = format_json_file(path) {
                 println!("Failed to format {}: {}", path.display(), e);
             }
         }
@@ -45,13 +45,13 @@ fn format_json_file(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     println!("Processing file: {}", path.display());
 
     // Read the file
-    let file_content = fs::read_to_string(&path)?;
+    let file_content = fs::read_to_string(path)?;
     // Parse the JSON
     let json: Value = serde_json::from_str(&file_content)?;
     // Format the JSON
     let pretty_json = serde_json::to_string_pretty(&json)?;
     // Write the formatted JSON back to the file
-    let mut file = fs::File::create(&path)?;
+    let mut file = fs::File::create(path)?;
     file.write_all(pretty_json.as_bytes())?;
 
     println!("Formatted {} successfully.", path.display());

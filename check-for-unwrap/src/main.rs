@@ -32,7 +32,7 @@ fn main() -> io::Result<()> {
         let path = entry.path(); // Get the file path
         let display = path.display(); // Get the displayable path
 
-        let file = File::open(&path)?; // Open the file
+        let file = File::open(path)?; // Open the file
         let reader = io::BufReader::new(file); // Create a BufReader for efficient line reading
 
         // Enumerate lines in the file with line numbers

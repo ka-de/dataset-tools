@@ -48,9 +48,8 @@ fn process_file(path: &Path) -> Result<()> {
 }
 
 fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
-    let (_header_size, metadata) = SafeTensors::read_metadata(&buffer).context(
-        "Cannot read metadata"
-    )?;
+    let (_header_size, metadata) =
+        SafeTensors::read_metadata(buffer).context("Cannot read metadata")?;
     let metadata = metadata.metadata().as_ref().context("No metadata available")?;
 
     let mut kv = Map::with_capacity(metadata.len());

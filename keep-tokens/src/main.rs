@@ -20,7 +20,7 @@ use walkdir::WalkDir;
 
 fn main() {
     // Defines a vector of tokens to keep
-    let keep_tokens = vec!["feral", "weasel"];
+    let keep_tokens = ["feral", "weasel"];
     // Sets the directory path to search for .txt files
     let directory = Path::new("E:\\training_dir_staging\\1_feral_weasel");
     let mut files = Vec::new(); // Creates an empty vector to store the file paths

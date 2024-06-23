@@ -100,15 +100,18 @@ fn main() -> io::Result<()> {
                             println!("{}:{}", path.display(), i + 1);
                             stdout().execute(ResetColor)?;
 
-                            for j in start..end {
+                            for (j, line) in lines[start..end]
+                                .iter()
+                                .enumerate()
+                                .map(|(j, line)| (j + start, line)) {
                                 if j == i {
                                     let highlighted = regex.replace_all(
-                                        &lines[j],
+                                        line,
                                         |caps: &regex::Captures| { format!("{}", caps[0].red()) }
                                     );
                                     println!("{}", highlighted);
                                 } else {
-                                    println!("{}", lines[j]);
+                                    println!("{}", line);
                                 }
                             }
                             println!(); // Extra newline for separation
