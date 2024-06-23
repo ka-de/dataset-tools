@@ -54,6 +54,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "compress-exe"
+version = "0.1.0"
+
+[[package]]
 name = "convert-e621-json-to-caption"
 version = "0.1.0"
 dependencies = [
