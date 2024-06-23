@@ -27,6 +27,10 @@ nalgebra = "0.32.6"
 approx = "0.5.1"
 
 [[bin]]
+name = "keep-tokens"
+path = "src/keep-tokens/main.rs"
+
+[[bin]]
 name = "format-json"
 path = "src/format-json/main.rs"
 
