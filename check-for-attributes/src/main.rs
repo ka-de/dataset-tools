@@ -81,7 +81,7 @@ fn main() -> io::Result<()> {
     for entry in WalkDir::new(".")
         .into_iter()
         .filter_entry(|e| !is_target_dir(e))
-        .filter_map(|e| e.ok()) {
+        .filter_map(Result::ok) {
         if entry.path().is_file() {
             let path = entry.path();
             if let Some(extension) = path.extension() {
@@ -112,9 +112,9 @@ fn main() -> io::Result<()> {
                                         line,
                                         |caps: &regex::Captures| { format!("{}", caps[0].red()) }
                                     );
-                                    println!("{}", highlighted);
+                                    println!("{highlighted}");
                                 } else {
-                                    println!("{}", line);
+                                    println!("{line}");
                                 }
                             }
                             println!(); // Extra newline for separation

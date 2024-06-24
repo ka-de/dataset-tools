@@ -36,7 +36,7 @@ fn create_caption_file(directory: &str) -> io::Result<()> {
 fn main() {
     let directory = "E:\\training_dir_staging";
     match create_caption_file(directory) {
-        Ok(_) => println!("All caption files have been created."),
-        Err(err) => eprintln!("An error occurred: {}", err),
+        Ok(()) => println!("All caption files have been created."),
+        Err(err) => eprintln!("An error occurred: {err}"),
     }
 }
