@@ -16,21 +16,12 @@
 ///        the `regex` library for regular expressions, and the `walkdir`
 ///        library for walking through directories.
 
-use std::fs::File;
-use std::io::{ BufReader, Write };
-use std::path::{ Path, PathBuf };
+use dataset_tools_rs::{ process_json_file, write_to_file };
 use regex::Regex;
 use serde_json::Value;
-use walkdir::{ WalkDir, DirEntry };
+use std::path::{ Path, PathBuf };
 
 const IGNORED_TAGS: [&str; 1] = [r"\bconditional_dnp\b"];
-
-fn is_hidden(entry: &DirEntry) -> bool {
-    entry
-        .file_name()
-        .to_str()
-        .is_some_and(|s| s.starts_with('.'))
-}
 
 fn should_ignore_tag(tag: &str) -> bool {
     IGNORED_TAGS.iter().any(|&ignored_tag_pattern| {
@@ -71,63 +62,46 @@ fn process_tags(tags_dict: &Value) -> Vec<String> {
 
 fn process_file(file_path: &Path) -> std::io::Result<()> {
     println!("Processing file: {file_path:?}");
-    let file = File::open(file_path)?;
-    let reader = BufReader::new(file);
-    let data: Value = serde_json::from_reader(reader)?;
+    process_json_file(file_path, |data| {
+        if let Some(post) = data.get("post") {
+            if let Some(file_data) = post.get("file") {
+                if let Some(url) = file_data.get("url").and_then(|u| u.as_str()) {
+                    let filename = Path::new(url).file_stem().unwrap().to_str().unwrap();
+                    let caption_path = file_path.with_file_name(format!("{filename}.txt"));
 
-    if let Some(post) = data.get("post") {
-        if let Some(file_data) = post.get("file") {
-            if let Some(url) = file_data.get("url").and_then(|u| u.as_str()) {
-                let filename = Path::new(url).file_stem().unwrap().to_str().unwrap();
-                let caption_file = format!("{filename}.txt");
-                let caption_path = file_path.with_file_name(caption_file);
+                    let rating = post
+                        .get("rating")
+                        .and_then(|r| r.as_str())
+                        .unwrap_or("q");
+                    let rating_str = match rating {
+                        "s" => "rating_safe, ",
+                        "e" => "rating_explicit, ",
+                        _ => "rating_questionable, ",
+                    };
 
-                let mut file = File::create(&caption_path)?;
+                    let mut caption_content = String::from(rating_str);
 
-                let rating = post
-                    .get("rating")
-                    .and_then(|r| r.as_str())
-                    .unwrap_or("q");
-                let rating_str = match rating {
-                    "s" => "rating_safe, ",
-                    "e" => "rating_explicit, ",
-                    _ => "rating_questionable, ",
-                };
-                file.write_all(rating_str.as_bytes())?;
+                    if let Some(tags_data) = post.get("tags") {
+                        let processed_tags = process_tags(tags_data);
+                        if !processed_tags.is_empty() {
+                            caption_content.push_str(&processed_tags.join(", "));
 
-                if let Some(tags_data) = post.get("tags") {
-                    let processed_tags = process_tags(tags_data);
-                    if !processed_tags.is_empty() {
-                        let tags_line = processed_tags.join(", ");
-                        file.write_all(tags_line.as_bytes())?;
-
-                        println!("{}", "-".repeat(50));
-                        println!("Caption file: {caption_path:?}");
-                        println!("Tags: {tags_line}");
-                        println!("{}", "-".repeat(50));
+                            println!("{}", "-".repeat(50));
+                            println!("Caption file: {caption_path:?}");
+                            println!("Tags: {caption_content}");
+                            println!("{}", "-".repeat(50));
+                        }
                     }
+
+                    write_to_file(&caption_path, &caption_content)?;
                 }
             }
         }
-    }
-
-    Ok(())
-}
-
-fn recursive_process(directory: &Path) -> std::io::Result<()> {
-    for entry in WalkDir::new(directory)
-        .into_iter()
-        .filter_entry(|e| !is_hidden(e) && e.file_name() != ".git")
-        .filter_map(Result::ok) {
-        let path = entry.path();
-        if path.extension().map_or(false, |ext| ext == "json") {
-            process_file(path)?;
-        }
-    }
-    Ok(())
+        Ok(())
+    })
 }
 
 fn main() -> std::io::Result<()> {
     let root_directory = PathBuf::from(r"E:\training_dir_staging");
-    recursive_process(&root_directory)
+    dataset_tools_rs::walk_directory(&root_directory, "json", process_file)
 }

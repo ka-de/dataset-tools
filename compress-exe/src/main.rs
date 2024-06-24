@@ -16,26 +16,19 @@
 
 use std::env;
 use std::process::Command;
-use std::fs;
+use dataset_tools_rs::walk_directory;
 
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
-    let target_dir = if args.len() > 1 {
-        &args[1]
-    } else {
-        ".\\target\\x86_64-pc-windows-msvc\\release\\"
-    };
+    let target_dir = args
+        .get(1)
+        .map_or(".\\target\\x86_64-pc-windows-msvc\\release\\", String::as_str);
 
-    for entry in fs::read_dir(target_dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("exe") {
-            let status = Command::new("upx").arg("--best").arg(path.clone()).status()?;
-            if !status.success() {
-                eprintln!("Failed to compress {}", path.display());
-            }
+    walk_directory(target_dir.as_ref(), "exe", |path| {
+        let status = Command::new("upx").arg("--best").arg(path).status()?;
+        if !status.success() {
+            eprintln!("Failed to compress {}", path.display());
         }
-    }
-
-    Ok(())
+        Ok(())
+    })
 }

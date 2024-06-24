@@ -5,4 +5,5 @@ authors = ["Balazs Horvath"]
 edition = "2021"
 
 [dependencies]
+dataset-tools-rs = { path = ".." }
 walkdir = "2.5.0"

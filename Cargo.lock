@@ -40,6 +40,7 @@ name = "check-for-attributes"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "dataset-tools-rs",
  "regex",
  "walkdir",
 ]
@@ -49,6 +50,7 @@ name = "check-for-unwrap"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "dataset-tools-rs",
  "regex",
  "walkdir",
 ]
@@ -56,11 +58,15 @@ dependencies = [
 [[package]]
 name = "compress-exe"
 version = "0.1.0"
+dependencies = [
+ "dataset-tools-rs",
+]
 
 [[package]]
 name = "convert-e621-json-to-caption"
 version = "0.1.0"
 dependencies = [
+ "dataset-tools-rs",
  "regex",
  "serde_json",
  "walkdir",
@@ -70,6 +76,7 @@ dependencies = [
 name = "create-empty-caption-files"
 version = "0.1.0"
 dependencies = [
+ "dataset-tools-rs",
  "walkdir",
 ]
 
@@ -116,6 +123,7 @@ name = "extract-metadata"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "dataset-tools-rs",
  "memmap2",
  "safetensors",
  "serde_json",
@@ -126,6 +134,7 @@ dependencies = [
 name = "format-json"
 version = "0.1.0"
 dependencies = [
+ "dataset-tools-rs",
  "serde_json",
  "walkdir",
 ]
@@ -140,6 +149,7 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 name = "keep-tokens"
 version = "0.1.0"
 dependencies = [
+ "dataset-tools-rs",
  "walkdir",
 ]
 
@@ -275,6 +285,7 @@ checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 name = "remove-extra-file-extensions"
 version = "0.1.0"
 dependencies = [
+ "dataset-tools-rs",
  "walkdir",
 ]
 
@@ -313,6 +324,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 name = "search-for-empty-captions"
 version = "0.1.0"
 dependencies = [
+ "dataset-tools-rs",
  "walkdir",
 ]
 

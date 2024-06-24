@@ -1,12 +1,10 @@
 // Turn clippy into a real bitch
 #![warn(clippy::all, clippy::pedantic)]
 
-use walkdir::{ WalkDir, DirEntry };
+use dataset_tools_rs::{ walk_rust_files, read_lines };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
-use std::fs::File;
-use std::io::{ self, BufRead };
-use std::io::stdout;
+use std::io::{ self, stdout };
 
 // List of built-in attributes in Rust
 const ATTRIBUTES: &[&str] = &[
@@ -61,68 +59,33 @@ const ATTRIBUTES: &[&str] = &[
     "debugger_visualizer",
 ];
 
-fn is_target_dir(entry: &DirEntry) -> bool {
-    entry.file_type().is_dir() && entry.path().ends_with("target")
-}
-
 fn main() -> io::Result<()> {
     let re = Regex::new(
         &format!(r"#\[\s*({})|#!\[\s*({})\]", ATTRIBUTES.join("|"), ATTRIBUTES.join("|"))
-    );
+    ).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
-    let regex = match re {
-        Ok(regex) => regex,
-        Err(e) => {
-            // Convert regex::Error to std::io::Error
-            return Err(io::Error::new(io::ErrorKind::Other, e));
-        }
-    };
+    walk_rust_files(".", |path, line_number, line| {
+        if re.is_match(line) {
+            let lines = read_lines(path)?;
+            let start = line_number.saturating_sub(3);
+            let end = (line_number + 2).min(lines.len());
 
-    for entry in WalkDir::new(".")
-        .into_iter()
-        .filter_entry(|e| !is_target_dir(e))
-        .filter_map(Result::ok) {
-        if entry.path().is_file() {
-            let path = entry.path();
-            if let Some(extension) = path.extension() {
-                if extension == "rs" {
-                    let file = File::open(path)?;
-                    let reader = io::BufReader::new(file);
+            stdout().execute(SetForegroundColor(Color::Magenta))?;
+            println!("{}:{}", path.display(), line_number);
+            stdout().execute(ResetColor)?;
 
-                    let mut lines: Vec<String> = Vec::new();
-                    for line in reader.lines() {
-                        lines.push(line?);
-                    }
-
-                    for (i, line) in lines.iter().enumerate() {
-                        if regex.is_match(line) {
-                            let start = if i >= 2 { i - 2 } else { 0 };
-                            let end = if i + 3 < lines.len() { i + 3 } else { lines.len() };
-
-                            stdout().execute(SetForegroundColor(Color::Magenta))?;
-                            println!("{}:{}", path.display(), i + 1);
-                            stdout().execute(ResetColor)?;
-
-                            for (j, line) in lines[start..end]
-                                .iter()
-                                .enumerate()
-                                .map(|(j, line)| (j + start, line)) {
-                                if j == i {
-                                    let highlighted = regex.replace_all(
-                                        line,
-                                        |caps: &regex::Captures| { format!("{}", caps[0].red()) }
-                                    );
-                                    println!("{highlighted}");
-                                } else {
-                                    println!("{line}");
-                                }
-                            }
-                            println!(); // Extra newline for separation
-                        }
-                    }
+            for (i, line) in lines[start..end].iter().enumerate() {
+                if i + start + 1 == line_number {
+                    let highlighted = re.replace_all(line, |caps: &regex::Captures| {
+                        format!("{}", caps[0].red())
+                    });
+                    println!("{highlighted}");
+                } else {
+                    println!("{line}");
                 }
             }
+            println!();
         }
-    }
-    Ok(())
+        Ok(())
+    })
 }

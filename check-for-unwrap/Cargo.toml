@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+dataset-tools-rs = { path = ".." }
 walkdir = "2.3.2"
 regex = "1.5.4"
 crossterm = "0.27.0"

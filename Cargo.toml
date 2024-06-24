@@ -19,7 +19,6 @@ version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"
 license = "MIT"
-exclude = ["assets/"]
 
 [dependencies]
 regex = "1.10.5"
