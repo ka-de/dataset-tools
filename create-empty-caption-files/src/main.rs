@@ -7,9 +7,7 @@ fn is_not_git(entry: &DirEntry) -> bool {
 }
 
 fn create_caption_file(directory: &str) -> io::Result<()> {
-    for entry in WalkDir::new(directory)
-        .into_iter()
-        .filter_entry(|e| is_not_git(e)) {
+    for entry in WalkDir::new(directory).into_iter().filter_entry(is_not_git) {
         let entry = match entry {
             Ok(entry) => entry,
             Err(err) => {
