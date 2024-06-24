@@ -1,3 +1,6 @@
+// Turn clippy into a real bitch
+#![warn(clippy::all, clippy::pedantic)]
+
 use std::env;
 use std::fs::File;
 use std::fs::write;

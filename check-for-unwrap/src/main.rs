@@ -1,3 +1,6 @@
+// Turn clippy into a real bitch
+#![warn(clippy::all, clippy::pedantic)]
+
 use std::process::exit;
 use std::fs::File;
 use std::io::{ self, BufRead };

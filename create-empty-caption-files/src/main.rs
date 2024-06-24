@@ -1,3 +1,6 @@
+// Turn clippy into a real bitch
+#![warn(clippy::all, clippy::pedantic)]
+
 use std::fs::File;
 use std::io;
 use walkdir::{ DirEntry, WalkDir };
@@ -22,7 +25,8 @@ fn create_caption_file(directory: &str) -> io::Result<()> {
         if ["jpg", "jpeg", "png"].contains(&extension) {
             let caption_file = path.with_extension("txt");
             if !caption_file.exists() {
-                File::create(caption_file)?;
+                File::create(&caption_file)?;
+                println!("Created caption file: {}", caption_file.display());
             }
         }
     }
@@ -32,7 +36,7 @@ fn create_caption_file(directory: &str) -> io::Result<()> {
 fn main() {
     let directory = "E:\\training_dir_staging";
     match create_caption_file(directory) {
-        Ok(_) => println!("Caption files created successfully."),
+        Ok(_) => println!("All caption files have been created."),
         Err(err) => eprintln!("An error occurred: {}", err),
     }
 }

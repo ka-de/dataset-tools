@@ -3,20 +3,18 @@ use std::io::{ BufRead, BufReader, Write };
 use std::path::Path;
 use walkdir::WalkDir;
 
-/*
- * This code is designed to process a directory of .txt files.
- *
- * It defines a list of "keep tokens" that should be retained in the files.
- * For each .txt file found, it reads the content, splits it into tags
- * (separated by commas) and sentences (after the first comma-separated list).
- *
- * Finally, it writes a new version of the file with the
- * format: keep_tokens ||| filtered_tags, sentences.
- *
- * The code uses the `walkdir` crate to recursively traverse the directory and find
- * the .txt files, which simplifies the code compared to using the standard library's
- * `read_dir` function.
- */
+/// This code is designed to process a directory of .txt files.
+///
+/// It defines a list of "keep tokens" that should be retained in the files.
+/// For each .txt file found, it reads the content, splits it into tags
+/// (separated by commas) and sentences (after the first comma-separated list).
+///
+/// Finally, it writes a new version of the file with the
+/// format: keep_tokens ||| filtered_tags, sentences.
+///
+/// The code uses the `walkdir` crate to recursively traverse the directory and find
+/// the .txt files, which simplifies the code compared to using the standard library's
+/// `read_dir` function.
 
 fn main() {
     // Defines a vector of tokens to keep

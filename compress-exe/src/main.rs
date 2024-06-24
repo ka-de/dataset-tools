@@ -1,3 +1,6 @@
+// Turn clippy into a real bitch
+#![warn(clippy::all, clippy::pedantic)]
+
 /// This program compresses all executable files in a specified directory using UPX.
 ///
 /// The program takes one optional command-line argument: the path to the directory containing the executables.

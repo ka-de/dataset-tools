@@ -1,3 +1,6 @@
+// Turn clippy into a real bitch
+#![warn(clippy::all, clippy::pedantic)]
+
 use walkdir::{ WalkDir, DirEntry };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };

@@ -1,3 +1,6 @@
+// Turn clippy into a real bitch
+#![warn(clippy::all, clippy::pedantic)]
+
 /// This script is used for processing JSON files in a directory and its subdirectories.
 /// It reads each JSON file, extracts the "post" data, and creates a caption file with the post's rating and tags.
 ///
