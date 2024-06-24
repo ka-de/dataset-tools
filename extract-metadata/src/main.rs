@@ -45,7 +45,7 @@ fn process_file(path: &Path) -> Result<()> {
     let json = get_json_metadata(&mmap)?;
     let pretty_json = serde_json::to_string_pretty(&json)?;
 
-    println!("{}", pretty_json);
+    println!("{pretty_json}");
     write(path.with_extension("json"), pretty_json)?;
     Ok(())
 }
