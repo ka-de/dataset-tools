@@ -1,3 +1,6 @@
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 use dataset_tools_rs::{ walk_directory, rename_file_without_image_extension };
 use std::env;
 use std::path::Path;

@@ -1,3 +1,6 @@
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 // lib.rs
 
 use std::fs::{ self, File };

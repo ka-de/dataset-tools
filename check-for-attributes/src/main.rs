@@ -1,4 +1,4 @@
-// Turn clippy into a real bitch
+// Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
 use dataset_tools_rs::{ walk_rust_files, read_lines };

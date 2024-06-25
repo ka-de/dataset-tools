@@ -1,3 +1,6 @@
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 /// This code is designed to process a directory of .txt files.
 ///
 /// It defines a list of "keep tokens" that should be retained in the files.

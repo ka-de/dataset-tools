@@ -1,4 +1,4 @@
-// Turn clippy into a real bitch
+// Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
 /// This program compresses all executable files in a specified directory using UPX.

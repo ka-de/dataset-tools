@@ -1,4 +1,4 @@
-// Turn clippy into a real bitch
+// Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
 /// This script is used to format JSON files in a directory and its subdirectories.

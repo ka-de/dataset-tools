@@ -329,6 +329,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "search-for-superscript-numbers"
+version = "0.1.0"
+dependencies = [
+ "dataset-tools-rs",
+ "regex",
+ "walkdir",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.203"
 source = "registry+https://github.com/rust-lang/crates.io-index"

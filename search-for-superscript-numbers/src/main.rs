@@ -1,3 +1,6 @@
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 use dataset_tools_rs::walk_directory;
 use regex::Regex;
 use std::fs::File;

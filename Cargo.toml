@@ -11,6 +11,7 @@ members = [
   "keep-tokens",
   "remove-extra-file-extensions",
   "search-for-empty-captions",
+  "search-for-superscript-numbers",
 ]
 
 [package]
