@@ -8,5 +8,5 @@ dataset-tools-rs = { path = ".." }
 safetensors = "0.4.3"
 memmap2 = "0.9.4"
 serde_json = "1.0"
-walkdir = "2.3.2"
+walkdir = "2.5.0"
 anyhow = "1.0.86"
