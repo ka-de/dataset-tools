@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
             "The following image files are missing caption files or have empty caption files:"
         );
         for path in missing_captions {
-            println!("{}", path);
+            println!("{path}");
         }
     }
 

@@ -12,10 +12,22 @@ use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
 
+/// Checks if a directory entry is the target directory.
+///
+/// # Returns
+///
+/// `true` if the entry is a directory and ends with "target", otherwise `false`.
+#[must_use = "Determines if the directory entry is a build output directory"]
 pub fn is_target_dir(entry: &DirEntry) -> bool {
     entry.file_type().is_dir() && entry.path().ends_with("target")
 }
 
+/// Checks if a directory entry is hidden.
+///
+/// # Returns
+///
+/// `true` if the entry's file name starts with a dot, indicating it is hidden.
+#[must_use = "Determines if the directory entry is hidden and should be skipped in directory listings"]
 pub fn is_hidden(entry: &DirEntry) -> bool {
     entry
         .file_name()
@@ -23,10 +35,22 @@ pub fn is_hidden(entry: &DirEntry) -> bool {
         .map_or(false, |s| s.starts_with('.'))
 }
 
+/// Checks if a directory entry is not a git directory.
+///
+/// # Returns
+///
+/// `true` if the entry's file name is not ".git".
+#[must_use = "Determines if the directory entry is not a git repository directory"]
 pub fn is_not_git(entry: &DirEntry) -> bool {
     entry.file_name().to_string_lossy() != ".git"
 }
 
+/// Walks through Rust files in a directory and applies a callback function to each line.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if a file cannot be opened or read.
+#[must_use = "Executes a callback on each line of Rust files and requires handling of the result"]
 pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
     where F: FnMut(&Path, usize, &str) -> io::Result<()>
 {
@@ -49,12 +73,24 @@ pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
     Ok(())
 }
 
+/// Reads all lines from a file at the given path.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be opened or read.
+#[must_use = "Reads all lines from a file and returns them, requiring handling of the result"]
 pub fn read_lines(path: &Path) -> io::Result<Vec<String>> {
     let file = File::open(path)?;
     let reader = io::BufReader::new(file);
     reader.lines().collect()
 }
 
+/// Processes a JSON file with a given processor function.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be opened, read, or if the JSON cannot be parsed.
+#[must_use = "Processes a JSON file and requires handling of the result to ensure proper file processing"]
 pub fn process_json_file<F>(file_path: &Path, processor: F) -> io::Result<()>
     where F: Fn(&Value) -> io::Result<()>
 {
@@ -64,11 +100,23 @@ pub fn process_json_file<F>(file_path: &Path, processor: F) -> io::Result<()>
     processor(&data)
 }
 
+/// Writes content to a file at the specified path.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be created or written to.
+#[must_use = "Writes content to a file and requires handling of the result to ensure data is saved"]
 pub fn write_to_file(path: &Path, content: &str) -> io::Result<()> {
     let mut file = File::create(path)?;
     file.write_all(content.as_bytes())
 }
 
+/// Walks through a directory and applies a callback function to each file with the specified extension.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if there's an issue with directory traversal or file operations.
+#[must_use = "Walks through a directory and requires handling of the result to ensure proper file processing"]
 pub fn walk_directory<F>(directory: &Path, file_extension: &str, mut callback: F) -> io::Result<()>
     where F: FnMut(&Path) -> io::Result<()>
 {
@@ -84,6 +132,12 @@ pub fn walk_directory<F>(directory: &Path, file_extension: &str, mut callback: F
     Ok(())
 }
 
+/// Retrieves JSON metadata from a buffer.
+///
+/// # Errors
+///
+/// Returns an error if the metadata cannot be read or parsed.
+#[must_use = "Retrieves JSON metadata and requires handling of the result to ensure metadata is obtained"]
 pub fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
     let (_header_size, metadata) =
         SafeTensors::read_metadata(buffer).context("Cannot read metadata")?;
@@ -104,6 +158,12 @@ pub fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
     Ok(Value::Object(kv))
 }
 
+/// Processes a SafeTensors file and extracts its JSON metadata.
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be opened, read, or processed.
+#[must_use = "Processes a SafeTensors file and requires handling of the result to ensure metadata is extracted"]
 pub fn process_safetensors_file(path: &Path) -> Result<()> {
     let file = File::open(path)?;
     let mmap = unsafe { Mmap::map(&file)? };
@@ -116,6 +176,8 @@ pub fn process_safetensors_file(path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Determines if the given path is an image file.
+#[must_use = "Determines if the path is an image file and the result should be checked"]
 pub fn is_image_file(path: &Path) -> bool {
     match path.extension().and_then(|e| e.to_str()) {
         Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png"),
@@ -123,6 +185,8 @@ pub fn is_image_file(path: &Path) -> bool {
     }
 }
 
+/// Checks if a caption file exists and is not empty.
+#[must_use = "Checks if the caption file exists and is not empty and the result should be checked"]
 pub fn caption_file_exists_and_not_empty(path: &Path) -> bool {
     if path.exists() {
         match fs::read_to_string(path) {
@@ -134,6 +198,12 @@ pub fn caption_file_exists_and_not_empty(path: &Path) -> bool {
     }
 }
 
+/// Formats a JSON file to have pretty-printed JSON.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be read, parsed as JSON, or written back.
+#[must_use = "Formats a JSON file and requires handling of the result to ensure the file is properly formatted"]
 pub fn format_json_file(path: &Path) -> io::Result<()> {
     println!("Processing file: {}", path.display());
 
@@ -150,12 +220,20 @@ pub fn format_json_file(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/// Reads the content of a file.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be opened or read.
+#[must_use = "Reads the content of a file and requires handling of the result to ensure the content is retrieved"]
 pub fn read_file_content(file: &str) -> io::Result<String> {
     let file = File::open(file)?;
     let reader = io::BufReader::new(file);
     reader.lines().collect::<Result<String, _>>()
 }
 
+/// Splits content into tags and sentences.
+#[must_use = "Splits content into tags and sentences and the result should be checked"]
 pub fn split_content(content: &str) -> (Vec<&str>, &str) {
     let split: Vec<_> = content.split("., ").collect();
     let tags: Vec<_> = split[0].split(',').collect();
@@ -163,6 +241,12 @@ pub fn split_content(content: &str) -> (Vec<&str>, &str) {
     (tags, sentences.trim())
 }
 
+/// # Errors/// Renames a file to remove the image extension.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be renamed.
+#[must_use = "Renames a file and requires handling of the result to ensure the file is properly renamed"]
 pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
     if let Some(old_name) = path.to_str() {
         if old_name.contains(".jpeg") || old_name.contains(".png") || old_name.contains(".jpg") {

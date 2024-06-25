@@ -8,7 +8,7 @@
 /// (separated by commas) and sentences (after the first comma-separated list).
 ///
 /// Finally, it writes a new version of the file with the
-/// format: keep_tokens ||| filtered_tags, sentences.
+/// format: `keep_tokens ||| filtered_tags, sentences`.
 ///
 /// The code uses the `walkdir` crate to recursively traverse the directory and find
 /// the .txt files, which simplifies the code compared to using the standard library's
