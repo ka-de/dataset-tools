@@ -59,7 +59,12 @@ pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
         .filter_entry(|e| !is_target_dir(e))
         .filter_map(Result::ok) {
         if let Some(path) = entry.path().to_str() {
-            if path.ends_with(".rs") {
+            if
+                std::path::Path
+                    ::new(path)
+                    .extension()
+                    .map_or(false, |ext| ext.eq_ignore_ascii_case("rs"))
+            {
                 let file = File::open(entry.path())?;
                 let reader = io::BufReader::new(file);
 
@@ -158,7 +163,7 @@ pub fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
     Ok(Value::Object(kv))
 }
 
-/// Processes a SafeTensors file and extracts its JSON metadata.
+/// Processes a `SafeTensors` file and extracts its JSON metadata.
 ///
 /// # Errors
 ///
@@ -241,7 +246,7 @@ pub fn split_content(content: &str) -> (Vec<&str>, &str) {
     (tags, sentences.trim())
 }
 
-/// # Errors/// Renames a file to remove the image extension.
+/// Renames a file to remove the image extension.
 ///
 /// # Errors
 ///
@@ -252,7 +257,7 @@ pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
         if old_name.contains(".jpeg") || old_name.contains(".png") || old_name.contains(".jpg") {
             let new_name = old_name.replace(".jpeg", "").replace(".png", "").replace(".jpg", "");
             fs::rename(old_name, &new_name)?;
-            println!("Renamed {} to {}", old_name, new_name);
+            println!("Renamed {old_name} to {new_name}");
         }
     }
     Ok(())

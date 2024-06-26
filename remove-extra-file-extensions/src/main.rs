@@ -7,7 +7,7 @@ use std::path::Path;
 
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
-    let dir = args.get(1).map(String::as_str).unwrap_or("E:/training_dir_staging");
+    let dir = args.get(1).map_or("E:/training_dir_staging", String::as_str);
 
     walk_directory(Path::new(dir), "txt", rename_file_without_image_extension)
 }
