@@ -22,6 +22,8 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
+# Command Line Argument Parser for Rust
+clap = { version = "4.5.7", features = ["derive"] }
 regex = "1.10.5"
 walkdir = "2.5.0"
 crossterm = "0.27.0"
