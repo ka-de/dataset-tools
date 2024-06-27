@@ -14,7 +14,7 @@
 /// the .txt files, which simplifies the code compared to using the standard library's
 /// `read_dir` function.
 
-use dataset_tools_rs::{ walk_directory, read_file_content, split_content, write_to_file };
+use dataset_tools::{ walk_directory, read_file_content, split_content, write_to_file };
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {

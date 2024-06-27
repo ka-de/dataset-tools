@@ -16,7 +16,7 @@
 ///        the `regex` library for regular expressions, and the `walkdir`
 ///        library for walking through directories.
 
-use dataset_tools_rs::{ process_json_file, write_to_file };
+use dataset_tools::{ process_json_file, write_to_file };
 use regex::Regex;
 use serde_json::Value;
 use std::path::{ Path, PathBuf };
@@ -103,5 +103,5 @@ fn process_file(file_path: &Path) -> std::io::Result<()> {
 
 fn main() -> std::io::Result<()> {
     let root_directory = PathBuf::from(r"E:\training_dir_staging");
-    dataset_tools_rs::walk_directory(&root_directory, "json", process_file)
+    dataset_tools::walk_directory(&root_directory, "json", process_file)
 }

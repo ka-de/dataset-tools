@@ -1,4 +1,4 @@
-# `dataset-tools-rs`
+# `dataset-tools`
 
 ## Release Build
 

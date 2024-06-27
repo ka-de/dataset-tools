@@ -1,7 +1,7 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-use dataset_tools_rs::{ walk_directory, write_to_file };
+use dataset_tools::{ walk_directory, write_to_file };
 use std::path::Path;
 
 fn create_caption_file(path: &Path) -> std::io::Result<()> {

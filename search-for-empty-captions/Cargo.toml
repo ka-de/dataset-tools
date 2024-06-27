@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-dataset-tools-rs = { path = ".." }
+dataset-tools = { path = ".." }
 walkdir = "2.5.0"

@@ -1,7 +1,7 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-use dataset_tools_rs::walk_rust_files;
+use dataset_tools::walk_rust_files;
 use std::process::exit;
 use regex::Regex;
 use crossterm::style::{ Color, Print, ResetColor, SetForegroundColor };

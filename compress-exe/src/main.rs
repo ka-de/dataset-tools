@@ -16,7 +16,7 @@
 
 use std::env;
 use std::process::Command;
-use dataset_tools_rs::walk_directory;
+use dataset_tools::walk_directory;
 
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();

@@ -5,7 +5,7 @@ authors = ["Balazs Horvath"]
 edition = "2021"
 
 [dependencies]
-dataset-tools-rs = { path = ".." }
+dataset-tools = { path = ".." }
 regex = "1.10.5"
 walkdir = "2.5.0"
 crossterm = "0.27.0"

@@ -15,7 +15,7 @@ members = [
 ]
 
 [package]
-name = "dataset-tools-rs"
+name = "dataset-tools"
 version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"

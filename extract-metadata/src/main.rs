@@ -1,7 +1,7 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-use dataset_tools_rs::{ walk_directory, process_safetensors_file };
+use dataset_tools::{ walk_directory, process_safetensors_file };
 use std::env;
 use std::path::Path;
 use anyhow::Result;

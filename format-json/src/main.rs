@@ -7,7 +7,7 @@
 /// It uses the `serde_json` crate to parse and format the JSON files,
 /// and the `walkdir` crate to recursively traverse directories.
 
-use dataset_tools_rs::{ walk_directory, format_json_file };
+use dataset_tools::{ walk_directory, format_json_file };
 use std::{ env, io };
 use std::path::Path;
 

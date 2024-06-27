@@ -1,7 +1,7 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-use dataset_tools_rs::{ walk_directory, is_image_file, caption_file_exists_and_not_empty };
+use dataset_tools::{ walk_directory, is_image_file, caption_file_exists_and_not_empty };
 use std::path::Path;
 
 fn main() -> std::io::Result<()> {
