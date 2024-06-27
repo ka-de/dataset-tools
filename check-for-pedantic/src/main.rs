@@ -4,8 +4,12 @@
 use std::process;
 use dataset_tools::{ walk_rust_files, read_lines };
 use anyhow::{ Result, Context };
+use log::{ info, warn };
+use env_logger;
 
 fn main() -> Result<()> {
+    env_logger::init();
+
     let dir = r"C:\Users\kade\code";
     let mut files_without_warning = Vec::new();
 
@@ -23,9 +27,9 @@ fn main() -> Result<()> {
     }).context("Failed to walk through Rust files")?;
 
     if !files_without_warning.is_empty() {
-        println!("The following files are missing the required warning:");
+        warn!("The following files are missing the required warning:");
         for file in &files_without_warning {
-            println!("{}", file.display());
+            info!("{}", file.display());
         }
         process::exit(1);
     }

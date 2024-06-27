@@ -6,6 +6,7 @@
 use std::fs::{ self, File };
 use std::io::{ self, BufRead, Write };
 use std::path::Path;
+use log::{ error, info };
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::Value;
 use anyhow::{ Context, Result };
@@ -54,10 +55,14 @@ pub fn is_not_git(entry: &DirEntry) -> bool {
 pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
     where F: FnMut(&Path, usize, &str) -> io::Result<()>
 {
+    info!("Attempting to walk directory: {}", dir);
+
     for entry in WalkDir::new(dir)
         .into_iter()
         .filter_entry(|e| !is_target_dir(e))
         .filter_map(Result::ok) {
+        info!("Processing entry: {:?}", entry.path());
+
         if let Some(path) = entry.path().to_str() {
             if
                 std::path::Path
@@ -65,7 +70,16 @@ pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
                     .extension()
                     .map_or(false, |ext| ext.eq_ignore_ascii_case("rs"))
             {
-                let file = File::open(entry.path())?;
+                info!("Attempting to open file: {}", path);
+
+                let file = match File::open(entry.path()) {
+                    Ok(f) => f,
+                    Err(e) => {
+                        error!("Error opening file {}: {:?}", path, e);
+                        return Err(e);
+                    }
+                };
+
                 let reader = io::BufReader::new(file);
 
                 for (i, line) in reader.lines().enumerate() {
@@ -210,7 +224,7 @@ pub fn caption_file_exists_and_not_empty(path: &Path) -> bool {
 /// Returns an `io::Error` if the file cannot be read, parsed as JSON, or written back.
 #[must_use = "Formats a JSON file and requires handling of the result to ensure the file is properly formatted"]
 pub fn format_json_file(path: &Path) -> io::Result<()> {
-    println!("Processing file: {}", path.display());
+    info!("Processing file: {}", path.display());
 
     let file_content = fs::read_to_string(path)?;
     let json: Value = serde_json
@@ -221,7 +235,7 @@ pub fn format_json_file(path: &Path) -> io::Result<()> {
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     fs::write(path, pretty_json)?;
 
-    println!("Formatted {} successfully.", path.display());
+    info!("Formatted {} successfully.", path.display());
     Ok(())
 }
 
@@ -257,7 +271,7 @@ pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
         if old_name.contains(".jpeg") || old_name.contains(".png") || old_name.contains(".jpg") {
             let new_name = old_name.replace(".jpeg", "").replace(".png", "").replace(".jpg", "");
             fs::rename(old_name, &new_name)?;
-            println!("Renamed {old_name} to {new_name}");
+            info!("Renamed {old_name} to {new_name}");
         }
     }
     Ok(())
