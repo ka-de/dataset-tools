@@ -1,0 +1,9 @@
+[package]
+name = "check-for-optimizations"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dataset-tools = { path = ".." }
+anyhow = "1.0.86"
+toml = "0.8.14"

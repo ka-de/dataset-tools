@@ -2,12 +2,15 @@
 resolver = "2"
 members = [
   "check-for-attributes",
+  "check-for-optimizations",
+  "check-for-pedantic",
   "check-for-unwrap",
   "compress-exe",
   "convert-e621-json-to-caption",
   "create-empty-caption-files",
   "extract-metadata",
   "format-json",
+  "insert-pedantic",
   "keep-tokens",
   "remove-extra-file-extensions",
   "search-for-empty-captions",
