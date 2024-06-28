@@ -1,7 +1,7 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-use std::path::PathBuf;
+use std::path::{ PathBuf, Path };
 use std::io;
 use dataset_tools::{ walk_rust_files, read_lines, write_to_file };
 use anyhow::{ Result, Context };
@@ -11,7 +11,7 @@ const WARNING_COMMENT: &str =
 #![warn(clippy::all, clippy::pedantic)]
 ";
 
-fn insert_warning(path: &std::path::Path) -> Result<()> {
+fn insert_warning(path: &Path) -> Result<()> {
     let lines = read_lines(path).context("Failed to read file")?;
     let mut new_content = String::new();
 
@@ -28,12 +28,12 @@ fn insert_warning(path: &std::path::Path) -> Result<()> {
     write_to_file(path, &new_content).context("Failed to write to file")
 }
 
-fn process_files(target: &std::path::Path) -> Result<()> {
+fn process_files(target: &Path) -> Result<()> {
     if target.is_file() {
         insert_warning(target)?;
         println!("Inserted warning in: {}", target.display());
     } else if target.is_dir() {
-        walk_rust_files(target.to_str().unwrap(), |path, _, _| {
+        walk_rust_files(target, |path| {
             match insert_warning(path) {
                 Ok(()) => {
                     println!("Inserted warning in: {}", path.display());
