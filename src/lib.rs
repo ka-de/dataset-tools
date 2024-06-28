@@ -3,15 +3,17 @@
 
 // lib.rs
 
+use std::collections::HashSet;
 use std::fs::{ self, File };
 use std::io::{ self, BufRead, Write };
 use std::path::Path;
-use log::{ error, info };
+use log::info;
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::Value;
 use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
+use std::path::PathBuf;
 
 /// Checks if a directory entry is the target directory.
 ///
@@ -28,12 +30,13 @@ pub fn is_target_dir(entry: &DirEntry) -> bool {
 /// # Returns
 ///
 /// `true` if the entry's file name starts with a dot, indicating it is hidden.
+/// Exception: Returns `false` for "." and ".." entries.
 #[must_use = "Determines if the directory entry is hidden and should be skipped in directory listings"]
 pub fn is_hidden(entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
-        .map_or(false, |s| s.starts_with('.'))
+        .map_or(false, |s| s != "." && s != ".." && s.starts_with('.'))
 }
 
 /// Checks if a directory entry is a git directory.
@@ -46,42 +49,51 @@ fn is_git_dir(entry: &DirEntry) -> bool {
     entry.file_name().to_string_lossy() == ".git"
 }
 
-/// Walks through Rust files in a directory and applies a callback function to each line.
+/// Processes a single Rust file and checks for the required warning.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be read.
+pub fn process_rust_file(path: &Path, files_without_warning: &mut Vec<PathBuf>) -> io::Result<()> {
+    info!("Processing file: {}", path.display());
+
+    let lines = read_lines(path)?;
+    if lines.len() >= 2 {
+        let warning_line = "#![warn(clippy::all, clippy::pedantic)]";
+        if !lines[0].contains(warning_line) && !lines[1].contains(warning_line) {
+            files_without_warning.push(path.to_owned());
+        }
+    }
+    Ok(())
+}
+
+/// Walks through Rust files in a directory and applies a callback function to each file.
+/// Skips hidden folders (except "." and ".."), .git folders, and target folders.
 ///
 /// # Errors
 ///
 /// Returns an `io::Error` if a file cannot be opened or read.
-#[must_use = "Executes a callback on each line of Rust files and requires handling of the result"]
-pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
-    where F: FnMut(&Path, usize, &str) -> io::Result<()>
+pub fn walk_rust_files<F>(dir: &Path, mut callback: F) -> io::Result<()>
+    where F: FnMut(&Path) -> io::Result<()>
 {
-    info!("Attempting to walk directory: {}", dir);
+    info!("Attempting to walk directory: {}", dir.display());
+    let mut processed_files = HashSet::new();
 
-    for entry in WalkDir::new(dir)
+    let walker = WalkDir::new(dir).follow_links(true);
+
+    for entry in walker
         .into_iter()
-        .filter_entry(|e| !is_hidden(e) && !is_git_dir(e))
+        .filter_entry(|e| !is_hidden(e) && !is_git_dir(e) && !is_target_dir(e))
         .filter_map(Result::ok) {
-        if let Some(path) = entry.path().to_str() {
-            if entry.file_type().is_file() && path.ends_with(".rs") {
-                info!("Processing Rust file: {}", path);
-
-                let file = match File::open(entry.path()) {
-                    Ok(f) => f,
-                    Err(e) => {
-                        error!("Error opening file {}: {:?}", path, e);
-                        return Err(e);
-                    }
-                };
-
-                let reader = io::BufReader::new(file);
-
-                for (i, line) in reader.lines().enumerate() {
-                    let line = line?;
-                    callback(entry.path(), i + 1, &line)?;
-                }
+        let path = entry.path();
+        if entry.file_type().is_file() && path.extension().map_or(false, |ext| ext == "rs") {
+            let canonical_path = path.canonicalize()?;
+            if processed_files.insert(canonical_path.clone()) {
+                callback(path)?;
             }
         }
     }
+
     Ok(())
 }
 
