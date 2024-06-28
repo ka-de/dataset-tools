@@ -4,7 +4,7 @@
 use dataset_tools::{ walk_rust_files, read_lines };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
-use std::io::{ self, stdout };
+use std::{ io::{ self, stdout }, path::Path };
 
 // List of built-in attributes in Rust
 const ATTRIBUTES: &[&str] = &[
@@ -25,7 +25,7 @@ const ATTRIBUTES: &[&str] = &[
     "deny",
     "forbid",
     "deprecated",
-    "must_use",
+    //"must_use",
     "diagnostic::on_unimplemented",
     "link",
     "link_name",
@@ -64,27 +64,29 @@ fn main() -> io::Result<()> {
         &format!(r"#\[\s*({})|#!\[\s*({})\]", ATTRIBUTES.join("|"), ATTRIBUTES.join("|"))
     ).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
-    walk_rust_files(".", |path, line_number, line| {
-        if re.is_match(line) {
-            let lines = read_lines(path)?;
-            let start = line_number.saturating_sub(3);
-            let end = (line_number + 2).min(lines.len());
+    walk_rust_files(Path::new("."), |path| {
+        let lines = read_lines(path)?;
+        for (line_number, line) in lines.iter().enumerate() {
+            if re.is_match(line) {
+                let start = line_number.saturating_sub(3);
+                let end = (line_number + 2).min(lines.len());
 
-            stdout().execute(SetForegroundColor(Color::Magenta))?;
-            println!("{}:{}", path.display(), line_number);
-            stdout().execute(ResetColor)?;
+                stdout().execute(SetForegroundColor(Color::Magenta))?;
+                println!("{}:{}", path.display(), line_number + 1); // Add 1 because enumeration starts at 0
+                stdout().execute(ResetColor)?;
 
-            for (i, line) in lines[start..end].iter().enumerate() {
-                if i + start + 1 == line_number {
-                    let highlighted = re.replace_all(line, |caps: &regex::Captures| {
-                        format!("{}", caps[0].red())
-                    });
-                    println!("{highlighted}");
-                } else {
-                    println!("{line}");
+                for (i, line) in lines[start..end].iter().enumerate() {
+                    if i + start == line_number {
+                        let highlighted = re.replace_all(line, |caps: &regex::Captures| {
+                            format!("{}", caps[0].red())
+                        });
+                        println!("{highlighted}");
+                    } else {
+                        println!("{line}");
+                    }
                 }
+                println!();
             }
-            println!();
         }
         Ok(())
     })

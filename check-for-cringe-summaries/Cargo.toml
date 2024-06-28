@@ -1,0 +1,8 @@
+[package]
+name = "check-for-cringe-summaries"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dataset-tools = { path = ".." }
+walkdir = "2.5.0"

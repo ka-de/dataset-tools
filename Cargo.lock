@@ -95,6 +95,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-for-cringe-summaries"
+version = "0.1.0"
+dependencies = [
+ "dataset-tools",
+ "walkdir",
+]
+
+[[package]]
 name = "check-for-optimizations"
 version = "0.1.0"
 dependencies = [

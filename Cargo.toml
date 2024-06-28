@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "check-for-attributes",
+  "check-for-cringe-summaries",
   "check-for-optimizations",
   "check-for-pedantic",
   "check-for-unwrap",
