@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"
 
+[lib]
+name = "dataset_tools"
+path = "lib.rs"
+
 [dependencies]
 log = "0.4.21"
 env_logger = "0.11.3"

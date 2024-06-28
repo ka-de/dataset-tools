@@ -36,14 +36,14 @@ pub fn is_hidden(entry: &DirEntry) -> bool {
         .map_or(false, |s| s.starts_with('.'))
 }
 
-/// Checks if a directory entry is not a git directory.
+/// Checks if a directory entry is a git directory.
 ///
 /// # Returns
 ///
-/// `true` if the entry's file name is not ".git".
-#[must_use = "Determines if the directory entry is not a git repository directory"]
-pub fn is_not_git(entry: &DirEntry) -> bool {
-    entry.file_name().to_string_lossy() != ".git"
+/// `true` if the entry's file name is ".git".
+#[must_use = "Determines if the directory entry is a git repository directory"]
+fn is_git_dir(entry: &DirEntry) -> bool {
+    entry.file_name().to_string_lossy() == ".git"
 }
 
 /// Walks through Rust files in a directory and applies a callback function to each line.
@@ -59,18 +59,11 @@ pub fn walk_rust_files<F>(dir: &str, mut callback: F) -> io::Result<()>
 
     for entry in WalkDir::new(dir)
         .into_iter()
-        .filter_entry(|e| !is_target_dir(e))
+        .filter_entry(|e| !is_hidden(e) && !is_git_dir(e))
         .filter_map(Result::ok) {
-        info!("Processing entry: {:?}", entry.path());
-
         if let Some(path) = entry.path().to_str() {
-            if
-                std::path::Path
-                    ::new(path)
-                    .extension()
-                    .map_or(false, |ext| ext.eq_ignore_ascii_case("rs"))
-            {
-                info!("Attempting to open file: {}", path);
+            if entry.file_type().is_file() && path.ends_with(".rs") {
+                info!("Processing Rust file: {}", path);
 
                 let file = match File::open(entry.path()) {
                     Ok(f) => f,
@@ -141,7 +134,7 @@ pub fn walk_directory<F>(directory: &Path, file_extension: &str, mut callback: F
 {
     for entry in WalkDir::new(directory)
         .into_iter()
-        .filter_entry(|e| !is_hidden(e) && is_not_git(e))
+        .filter_entry(|e| !is_hidden(e) && !is_git_dir(e))
         .filter_map(Result::ok) {
         let path = entry.path();
         if path.extension().map_or(false, |ext| ext == file_extension) {
