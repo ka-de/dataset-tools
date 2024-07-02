@@ -9,6 +9,7 @@ members = [
   "compress-exe",
   "convert-e621-json-to-caption",
   "create-empty-caption-files",
+  "delete-url-files",
   "extract-metadata",
   "format-json",
   "insert-pedantic",
