@@ -1,0 +1,9 @@
+[package]
+name = "letterbox-remover"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dataset-tools = { path = ".." }
+image = "0.25.1"
+walkdir = "2.5.0"

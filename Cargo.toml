@@ -13,6 +13,7 @@ members = [
   "format-json",
   "insert-pedantic",
   "keep-tokens",
+  "letterbox-remover",
   "remove-extra-file-extensions",
   "search-for-empty-captions",
   "search-for-superscript-numbers",
