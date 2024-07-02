@@ -12,6 +12,7 @@ members = [
   "delete-url-files",
   "extract-metadata",
   "format-json",
+  "hotdogaug",
   "insert-pedantic",
   "keep-tokens",
   "letterbox-remover",

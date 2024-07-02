@@ -1,7 +1,7 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-// lib.rs
+// src/lib.rs
 
 use std::collections::HashSet;
 use std::fs::{ self, File };
