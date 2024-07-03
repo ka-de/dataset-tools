@@ -118,7 +118,7 @@ fn segment_characters(image: &core::Mat, padding: i32) -> opencv::Result<core::M
     )?;
 
     let mut rng = rand::thread_rng();
-    let output = core::Mat::zeros(thresh.rows(), thresh.cols(), thresh.typ())?; // Removed unwrap()
+    let mut output = core::Mat::zeros(thresh.rows(), thresh.cols(), thresh.typ())?.to_mat()?;
 
     for contour in contours.iter() {
         let epsilon =
@@ -129,14 +129,26 @@ fn segment_characters(image: &core::Mat, padding: i32) -> opencv::Result<core::M
 
         let rect = imgproc::bounding_rect(&approx)?;
         let roi = thresh.roi(rect)?;
-        let mut output_mat = output.to_mat()?; // Convert MatExpr to Mat
-        let mut roi_output = output_mat.roi_mut(rect)?;
+        let mut roi_output = output.roi_mut(rect)?;
         core::bitwise_and(&roi, &roi, &mut roi_output, &core::no_array())?;
     }
 
+    // Draw contours
+    imgproc::draw_contours(
+        &mut output,
+        &contours,
+        -1, // draw all contours
+        core::Scalar::new(255.0, 255.0, 255.0, 0.0), // white color
+        1, // thickness
+        imgproc::LINE_8,
+        &core::no_array(),
+        i32::MAX,
+        core::Point::new(0, 0)
+    )?;
+
     let mut output_no_padding = core::Mat::default();
     let roi = core::Rect::new(padding, padding, image.cols(), image.rows());
-    output.roi(roi)?.to_mat()?.copy_to(&mut output_no_padding)?; // Convert to Mat before copy_to
+    output.roi(roi)?.copy_to(&mut output_no_padding)?;
 
     let mut guide = core::Mat::default();
     imgproc::cvt_color(image, &mut guide, imgproc::COLOR_BGR2GRAY, 0)?;
