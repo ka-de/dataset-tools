@@ -1,11 +1,10 @@
 [package]
-name = "convert-e621-json-to-caption"
+name = "convert-caption-json-to-txt"
 version = "0.1.0"
 authors = ["Balazs Horvath"]
 edition = "2021"
 
 [dependencies]
 dataset-tools = { path = ".." }
-regex = "1.10.5"
 walkdir = "2.5.0"
 serde_json = "1.0.120"
