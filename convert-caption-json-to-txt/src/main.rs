@@ -1,3 +1,6 @@
+// Converts the json created by JTP_PILOT2-2-e3-vit_so400m_patch14_siglip_384
+// to caption files.
+
 use std::env;
 use std::fs::{ self, File };
 use std::io::{ BufRead, BufReader, Write };
