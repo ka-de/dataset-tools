@@ -2,18 +2,19 @@
 #![warn(clippy::all, clippy::pedantic)]
 
 // src/lib.rs
+extern crate image;
 
 use std::collections::HashSet;
 use std::fs::{ self, File };
 use std::io::{ self, BufRead, Write };
-use std::path::Path;
+use std::path::{ Path, PathBuf };
 use log::info;
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::Value;
 use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
-use std::path::PathBuf;
+use image::GenericImageView;
 
 /// Checks if a directory entry is the target directory.
 ///
@@ -279,5 +280,130 @@ pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
             info!("Renamed {old_name} to {new_name}");
         }
     }
+    Ok(())
+}
+
+/// Processes a JSON file and converts it to a caption file.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if the file cannot be read, parsed, or written.
+pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
+    if input_path.extension().and_then(|s| s.to_str()) == Some("json") {
+        let content = fs::read_to_string(input_path)?;
+        let json: Value = serde_json::from_str(&content)?;
+
+        if let Value::Object(map) = json {
+            let mut tags: Vec<(String, f64)> = map
+                .iter()
+                .filter_map(|(key, value)| {
+                    if let Value::Number(num) = value {
+                        let probability = num.as_f64().unwrap_or(0.0);
+                        if probability > 0.2 {
+                            Some((key.replace("(", "\\(").replace(")", "\\)"), probability))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            tags.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+            let output_path = input_path.with_extension("txt");
+            let mut output_file = File::create(output_path)?;
+            write!(
+                output_file,
+                "{}",
+                tags
+                    .iter()
+                    .map(|(tag, _)| tag.clone())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
+        }
+    }
+    Ok(())
+}
+
+/// Deletes files with a specific extension in a directory and its subdirectories.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if there's an issue with file operations.
+pub fn delete_files_with_extension(target_dir: &Path, extension: &str) -> io::Result<()> {
+    for entry in WalkDir::new(target_dir).into_iter().filter_map(Result::ok) {
+        let path = entry.path();
+        if path.is_file() {
+            if let Some(file_extension) = path.extension() {
+                if file_extension.eq_ignore_ascii_case(extension) {
+                    fs::remove_file(path)?;
+                    println!("Removed: {}", path.display());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Processes an image file to remove letterboxing.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if there's an issue with image processing or file operations.
+pub fn remove_letterbox(input_path: &Path) -> io::Result<()> {
+    let mut img = image::open(input_path).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    let (width, height) = img.dimensions();
+
+    let mut top = 0;
+    let mut bottom = height - 1;
+    let mut left = 0;
+    let mut right = width - 1;
+
+    // Find top
+    'outer: for y in 0..height {
+        for x in 0..width {
+            if img.get_pixel(x, y)[0] != 0 {
+                top = y;
+                break 'outer;
+            }
+        }
+    }
+
+    // Find bottom
+    'outer: for y in (0..height).rev() {
+        for x in 0..width {
+            if img.get_pixel(x, y)[0] != 0 {
+                bottom = y;
+                break 'outer;
+            }
+        }
+    }
+
+    // Find left
+    'outer: for x in 0..width {
+        for y in 0..height {
+            if img.get_pixel(x, y)[0] != 0 {
+                left = x;
+                break 'outer;
+            }
+        }
+    }
+
+    // Find right
+    'outer: for x in (0..width).rev() {
+        for y in 0..height {
+            if img.get_pixel(x, y)[0] != 0 {
+                right = x;
+                break 'outer;
+            }
+        }
+    }
+
+    let cropped = img.crop(left, top, right - left + 1, bottom - top + 1);
+    cropped.save(input_path).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+
     Ok(())
 }

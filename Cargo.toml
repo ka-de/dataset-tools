@@ -29,6 +29,24 @@ authors = ["Balazs Horvath"]
 edition = "2021"
 license = "MIT"
 
+# Enable all compiler optimizations in debug builds.
+[profile.dev]
+opt-level = 3
+
+# Enable all compiler optimizations for dependencies in debug builds.
+# With some link time optimizations, it might produce better optimized
+# code, using whole-program analysis, at the cost of longer linking time.
+[profile.dev.package."*"]
+opt-level = 3
+codegen-units = 1
+
+# Enable every possible compiler optimizations and stripping for release builds.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
 [dependencies]
 # Command Line Argument Parser for Rust
 log = "0.4.22"
@@ -41,11 +59,4 @@ serde_json = "1.0.120"
 safetensors = "0.4.3"
 memmap2 = "0.9.4"
 anyhow = "1.0.86"
-
-# Enable a small amount of optimization in debug mode
-[profile.dev]
-opt-level = 1
-
-# Enable high optimizations for dependencies but not for our code:
-[profile.dev.package."*"]
-opt-level = 3
+image = "0.25.1"
