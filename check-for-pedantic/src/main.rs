@@ -4,7 +4,6 @@
 use dataset_tools::{ walk_rust_files, process_rust_file };
 use anyhow::{ Result, Context };
 use log::warn;
-use env_logger;
 use std::{ path::PathBuf, process, env };
 
 fn main() -> Result<()> {
@@ -12,7 +11,7 @@ fn main() -> Result<()> {
 
     let args: Vec<String> = env::args().collect();
     let default_dir = env::current_dir()?;
-    let target = args.get(1).map(PathBuf::from).unwrap_or(default_dir);
+    let target = args.get(1).map_or(default_dir, PathBuf::from);
 
     // Canonicalize the path to resolve `.` and `..`
     let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;

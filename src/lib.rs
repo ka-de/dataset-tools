@@ -300,7 +300,7 @@ pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
                     if let Value::Number(num) = value {
                         let probability = num.as_f64().unwrap_or(0.0);
                         if probability > 0.2 {
-                            Some((key.replace("(", "\\(").replace(")", "\\)"), probability))
+                            Some((key.replace('(', "\\(").replace(')', "\\)"), probability))
                         } else {
                             None
                         }
