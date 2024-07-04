@@ -288,6 +288,7 @@ pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
 /// # Errors
 ///
 /// Returns an `io::Error` if the file cannot be read, parsed, or written.
+#[must_use = "Processes a JSON file to create a caption file and requires handling of the result to ensure proper conversion"]
 pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
     if input_path.extension().and_then(|s| s.to_str()) == Some("json") {
         let content = fs::read_to_string(input_path)?;
@@ -333,6 +334,7 @@ pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
 /// # Errors
 ///
 /// Returns an `io::Error` if there's an issue with file operations.
+#[must_use = "Deletes files with a specific extension and requires handling of the result to ensure proper file deletion"]
 pub fn delete_files_with_extension(target_dir: &Path, extension: &str) -> io::Result<()> {
     for entry in WalkDir::new(target_dir).into_iter().filter_map(Result::ok) {
         let path = entry.path();
@@ -353,6 +355,7 @@ pub fn delete_files_with_extension(target_dir: &Path, extension: &str) -> io::Re
 /// # Errors
 ///
 /// Returns an `io::Error` if there's an issue with image processing or file operations.
+#[must_use = "Processes an image to remove letterboxing and requires handling of the result to ensure proper image modification"]
 pub fn remove_letterbox(input_path: &Path) -> io::Result<()> {
     let mut img = image::open(input_path).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
     let (width, height) = img.dimensions();
