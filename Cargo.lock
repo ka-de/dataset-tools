@@ -338,6 +338,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert-caption-json-to-txt"
+version = "0.1.0"
+dependencies = [
+ "dataset-tools",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
 name = "convert-e621-json-to-caption"
 version = "0.1.0"
 dependencies = [

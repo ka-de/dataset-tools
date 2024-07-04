@@ -32,7 +32,7 @@ fn process_file(input_path: &Path) -> std::io::Result<()> {
 
             let output_path = input_path.with_extension("txt");
             let mut output_file = File::create(output_path)?;
-            writeln!(output_file, "{}", tags.join(", "))?;
+            write!(output_file, "{}", tags.join(", "))?;
         }
     }
     Ok(())
