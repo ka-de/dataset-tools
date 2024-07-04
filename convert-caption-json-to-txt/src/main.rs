@@ -15,12 +15,13 @@ fn process_file(input_path: &Path) -> std::io::Result<()> {
         let json: Value = serde_json::from_str(&content)?;
 
         if let Value::Object(map) = json {
-            let mut tags: Vec<String> = map
+            let mut tags: Vec<(String, f64)> = map
                 .iter()
                 .filter_map(|(key, value)| {
                     if let Value::Number(num) = value {
-                        if num.as_f64().unwrap_or(0.0) > 0.5 {
-                            Some(key.replace("(", "\\(").replace(")", "\\)"))
+                        let probability = num.as_f64().unwrap_or(0.0);
+                        if probability > 0.2 {
+                            Some((key.replace("(", "\\(").replace(")", "\\)"), probability))
                         } else {
                             None
                         }
@@ -30,12 +31,20 @@ fn process_file(input_path: &Path) -> std::io::Result<()> {
                 })
                 .collect();
 
-            tags.sort_by(|a, b| b.len().cmp(&a.len()));
-            tags.truncate(4);
+            // Sort tags by probability in descending order
+            tags.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
             let output_path = input_path.with_extension("txt");
             let mut output_file = File::create(output_path)?;
-            write!(output_file, "{}", tags.join(", "))?;
+            write!(
+                output_file,
+                "{}",
+                tags
+                    .iter()
+                    .map(|(tag, _)| tag.clone())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
         }
     }
     Ok(())
