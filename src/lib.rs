@@ -227,7 +227,7 @@ pub async fn process_safetensors_file(path: &Path) -> Result<()> {
             write_to_file(&path.with_extension("json"), &pretty_json).await?;
         }
         Err(e) => {
-            warn!("No metadata found for file: {:?}. Error: {}", path, e);
+            warn!("No metadata found for file: {path:?}. Error: {e}");
         }
     }
     Ok(())
@@ -373,7 +373,7 @@ pub async fn delete_files_with_extension(target_dir: &Path, extension: &str) -> 
                     tasks.push(
                         tokio::spawn(async move {
                             if let Err(e) = fs::remove_file(&path).await {
-                                eprintln!("Failed to remove {}: {}", path.display(), e);
+                                eprintln!("Failed to remove {}: {e}", path.display());
                             } else {
                                 println!("Removed: {}", path.display());
                             }
