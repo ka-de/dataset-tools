@@ -8,12 +8,16 @@ use std::env;
 use std::path::Path;
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     let args: Vec<String> = env::args().collect();
     let dir = args.get(1).map_or("E:/training_dir_staging", String::as_str);
 
     walk_directory(Path::new(dir), "txt", |path| {
         let path_buf = path.to_path_buf();
-        async move { rename_file_without_image_extension(&path_buf).await }
-    }).await
+        async move {
+            rename_file_without_image_extension(&path_buf).await.map_err(anyhow::Error::from)
+        }
+    }).await?;
+
+    Ok(())
 }

@@ -18,16 +18,17 @@
 
 use dataset_tools::{ walk_directory, read_file_content, split_content, write_to_file };
 use std::path::PathBuf;
+use anyhow::Result;
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     let keep_tokens = ["feral", "weasel"];
     let directory = PathBuf::from("E:\\training_dir_staging");
 
     println!("Searching for .txt files in directory: {}", directory.display());
 
     walk_directory(&directory, "txt", |path| {
-        let path_buf = path.to_path_buf(); // Convert &Path to PathBuf
+        let path_buf = path.to_path_buf();
         async move {
             if
                 !path_buf.file_name().unwrap().to_string_lossy().contains("-sample-prompts.txt") &&
@@ -54,5 +55,7 @@ async fn main() -> std::io::Result<()> {
             }
             Ok(())
         }
-    }).await
+    }).await?;
+
+    Ok(())
 }

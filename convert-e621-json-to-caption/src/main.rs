@@ -1,3 +1,5 @@
+// convert-e621-json-to-caption\src\main.rs
+
 //! # e621.net JSON to Caption File Converter
 //!
 //! This script processes JSON files from e621.net, extracting "post" data to create caption files.
@@ -16,7 +18,11 @@ use std::{ path::{ Path, PathBuf }, sync::Arc };
 use tokio::io;
 
 /// Patterns of tags to be ignored during processing.
-const IGNORED_TAGS: [&str; 1] = [r"\bconditional_dnp\b"];
+const IGNORED_TAGS: [&str; 3] = [
+    r"\bconditional_dnp\b",
+    r"^\d{4}$", // Years
+    r"^\d+:\d+$", // Aspect ratio
+];
 
 /// Checks if a tag should be ignored based on predefined patterns.
 ///
@@ -83,7 +89,7 @@ fn process_tags(tags_dict: &Value) -> Vec<String> {
 /// # Returns
 ///
 /// * `io::Result<()>` - The result of the file writing operation.
-async fn process_json_data(data: &Value, file_path: &Arc<PathBuf>) -> io::Result<()> {
+async fn process_json_data(data: &Value, file_path: &Arc<PathBuf>) -> anyhow::Result<()> {
     if let Some(post) = data.get("post") {
         if let Some(file_data) = post.get("file") {
             if let Some(url) = file_data.get("url").and_then(|u| u.as_str()) {
@@ -130,19 +136,26 @@ async fn process_json_data(data: &Value, file_path: &Arc<PathBuf>) -> io::Result
 /// # Returns
 ///
 /// * `io::Result<()>` - The result of the file processing operation.
-async fn process_file(file_path: PathBuf) -> io::Result<()> {
+async fn process_file(file_path: PathBuf) -> anyhow::Result<()> {
     println!("Processing file: {file_path:?}");
     let file_path = Arc::new(file_path);
 
     process_json_file(&file_path, |data| {
         let file_path = Arc::clone(&file_path);
         let data_owned = data.clone();
-        async move { process_json_data(&data_owned, &file_path).await }
-    }).await
+        async move {
+            process_json_data(&data_owned, &file_path).await.map_err(|e|
+                io::Error::new(io::ErrorKind::Other, e)
+            )
+        }
+    }).await.map_err(anyhow::Error::from)?;
+
+    Ok(())
 }
 
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     let root_directory = PathBuf::from(r"E:\training_dir_staging");
-    walk_directory(&root_directory, "json", process_file).await
+    walk_directory(&root_directory, "json", process_file).await?;
+    Ok(())
 }

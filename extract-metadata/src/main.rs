@@ -6,10 +6,9 @@
 use dataset_tools::{ walk_directory, process_safetensors_file };
 use std::env;
 use std::path::Path;
-use anyhow::Result;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the logger to output diagnostic information.
     env_logger::init();
 
@@ -20,19 +19,13 @@ async fn main() -> Result<()> {
     }
     let path = Path::new(&args[1]);
 
-    Ok(
-        (if path.is_dir() {
-            walk_directory(path, "safetensors", |file_path| {
-                async move {
-                    process_safetensors_file(&file_path).await.map_err(|err|
-                        std::io::Error::new(std::io::ErrorKind::Other, err)
-                    )
-                }
-            }).await
-        } else {
-            process_safetensors_file(path).await.map_err(|err|
-                std::io::Error::new(std::io::ErrorKind::Other, err)
-            )
-        })?
-    )
+    if path.is_dir() {
+        walk_directory(path, "safetensors", |file_path| {
+            async move { process_safetensors_file(&file_path).await }
+        }).await?;
+    } else {
+        process_safetensors_file(path).await?;
+    }
+
+    Ok(())
 }

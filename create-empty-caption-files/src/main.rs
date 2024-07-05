@@ -5,8 +5,9 @@
 
 use dataset_tools::{ walk_directory, write_to_file };
 use std::path::{ Path, PathBuf };
+use anyhow::Result;
 
-async fn create_caption_file(path: PathBuf) -> std::io::Result<()> {
+async fn create_caption_file(path: PathBuf) -> Result<()> {
     let caption_file = path.with_extension("txt");
     if !caption_file.exists() {
         write_to_file(&caption_file, "").await?;
@@ -16,7 +17,7 @@ async fn create_caption_file(path: PathBuf) -> std::io::Result<()> {
 }
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     let directory = Path::new("E:\\training_dir_staging");
     walk_directory(directory, "jpg", |path| create_caption_file(path.to_path_buf())).await?;
     walk_directory(directory, "jpeg", |path| create_caption_file(path.to_path_buf())).await?;

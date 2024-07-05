@@ -12,16 +12,15 @@
 use dataset_tools::{ walk_directory, format_json_file };
 use std::env;
 use std::path::Path;
+use anyhow::Result;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-    let directory_path = args
-        .get(1)
-        .map_or("E:/projects/yiff_toolkit/ponyxl_loras", String::as_str);
+    let directory_path = args.get(1).map_or("E:/projects/yiff_toolkit", String::as_str);
 
     walk_directory(Path::new(directory_path), "json", |path| {
-        Box::pin(format_json_file(path))
+        Box::pin(async move { format_json_file(path).await.map_err(Into::into) })
     }).await?;
 
     Ok(())

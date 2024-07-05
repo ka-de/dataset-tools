@@ -154,8 +154,8 @@ pub async fn walk_directory<F, Fut>(
     extension: &str,
     callback: F
 )
-    -> io::Result<()>
-    where F: Fn(PathBuf) -> Fut, Fut: std::future::Future<Output = io::Result<()>> + Send + 'static
+    -> Result<()>
+    where F: Fn(PathBuf) -> Fut, Fut: std::future::Future<Output = Result<()>> + Send + 'static
 {
     let dir = dir.as_ref();
     info!("Starting directory walk in: {dir:?}");
@@ -253,17 +253,15 @@ pub async fn caption_file_exists_and_not_empty(path: &Path) -> bool {
 ///
 /// Returns an `io::Error` if the file cannot be read, parsed as JSON, or written back.
 #[must_use = "Formats a JSON file and requires handling of the result to ensure the file is properly formatted"]
-pub async fn format_json_file(path: PathBuf) -> io::Result<()> {
+pub async fn format_json_file(path: PathBuf) -> Result<()> {
     info!("Processing file: {}", path.display());
 
-    let file_content = fs::read_to_string(path.clone()).await?;
-    let json: Value = serde_json
-        ::from_str(&file_content)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    let pretty_json = serde_json
-        ::to_string_pretty(&json)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    fs::write(path.clone(), pretty_json).await?;
+    let file_content = fs
+        ::read_to_string(path.clone()).await
+        .context("Failed to read file content")?;
+    let json: Value = serde_json::from_str(&file_content).context("Failed to parse JSON")?;
+    let pretty_json = serde_json::to_string_pretty(&json).context("Failed to format JSON")?;
+    fs::write(path.clone(), pretty_json).await.context("Failed to write formatted JSON")?;
 
     info!("Formatted {} successfully.", path.display());
     Ok(())

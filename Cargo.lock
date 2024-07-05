@@ -369,6 +369,7 @@ checksum = "0b6a852b24ab71dffc585bcb46eaf7959d175cb865a7152e35b348d1b2960422"
 name = "compress-exe"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "tokio",
 ]
@@ -387,6 +388,7 @@ dependencies = [
 name = "convert-e621-json-to-caption"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "regex",
  "serde_json",
@@ -407,6 +409,7 @@ dependencies = [
 name = "create-empty-caption-files"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "tokio",
  "walkdir",
@@ -598,6 +601,7 @@ dependencies = [
 name = "format-json"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "serde_json",
  "tokio",
@@ -790,6 +794,7 @@ checksum = "f5d4a7da358eff58addd2877a45865158f0d78c911d43a5784ceb7bbf52833b0"
 name = "keep-tokens"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "tokio",
  "walkdir",
@@ -1297,9 +1302,21 @@ checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 name = "remove-extra-file-extensions"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "tokio",
  "walkdir",
+]
+
+[[package]]
+name = "remove-transparency"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "dataset-tools",
+ "image",
+ "tokio",
 ]
 
 [[package]]
@@ -1352,6 +1369,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 name = "search-for-empty-captions"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dataset-tools",
  "tokio",
  "walkdir",
@@ -1361,6 +1379,7 @@ dependencies = [
 name = "search-for-superscript-numbers"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "crossterm",
  "dataset-tools",
  "regex",

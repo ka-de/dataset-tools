@@ -1,0 +1,11 @@
+[package]
+name = "remove-transparency"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dataset-tools = { path = ".." }
+tokio = { version = "1.28", features = ["full"] }
+image = "0.25.1"
+anyhow = "1.0"
+clap = { version = "4.3", features = ["derive"] }

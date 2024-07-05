@@ -19,10 +19,15 @@ use std::env;
 use std::path::{ Path, PathBuf };
 use tokio::process::Command as AsyncCommand;
 use dataset_tools::walk_directory;
+use anyhow::{ Context, Result };
 
-async fn compress_exe(path: PathBuf) -> std::io::Result<()> {
+async fn compress_exe(path: PathBuf) -> Result<()> {
     println!("Compressing: {}", path.display());
-    let status = AsyncCommand::new("upx").arg("--best").arg(&path).status().await?;
+    let status = AsyncCommand::new("upx")
+        .arg("--best")
+        .arg(&path)
+        .status().await
+        .context("Failed to run UPX command")?;
     if !status.success() {
         eprintln!("Failed to compress {}", path.display());
     }
@@ -30,7 +35,7 @@ async fn compress_exe(path: PathBuf) -> std::io::Result<()> {
 }
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     let target_dir = args
         .get(1)

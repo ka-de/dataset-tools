@@ -1,17 +1,20 @@
+// search-for-superscript-numbers\src\main.rs
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
 use crossterm::{ ExecutableCommand, style::Print };
 use crossterm::style::{ Color, SetForegroundColor, ResetColor };
 use regex::Regex;
-use std::io::{ self, stdout, Write };
+use std::io::{ stdout, Write };
 use tokio::fs::File;
 use tokio::io::{ AsyncBufReadExt, BufReader };
 use std::path::Path;
 use dataset_tools::walk_directory;
+use anyhow::Result;
 
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> Result<()> {
     let re = Regex::new(r"[¹²³⁴⁵⁶⁷⁸⁹]").unwrap();
     let dir = Path::new(r"C:\Users\kade\code\cringe.live\");
 
