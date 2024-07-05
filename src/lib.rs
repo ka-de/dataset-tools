@@ -5,7 +5,7 @@
 extern crate image;
 
 use std::path::{ Path, PathBuf };
-use log::info;
+use log::{ info, warn };
 use tokio::task;
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::Value;
@@ -173,7 +173,10 @@ pub async fn walk_directory<F, Fut>(
         info!("Processing path: {path:?}");
         if path.extension().map_or(false, |ext| ext == extension) {
             info!("Path matches extension: {path:?}");
-            task::spawn(callback(path)).await??;
+            let path_clone = path.clone();
+            if let Err(e) = task::spawn(callback(path)).await? {
+                warn!("Error processing file: {path_clone:?}. Error: {e}");
+            }
         }
     }
 
@@ -217,11 +220,16 @@ pub async fn process_safetensors_file(path: &Path) -> Result<()> {
     let file = File::open(path).await?;
     let mmap = unsafe { Mmap::map(&file)? };
 
-    let json = get_json_metadata(&mmap)?;
-    let pretty_json = serde_json::to_string_pretty(&json)?;
-
-    info!("{pretty_json}");
-    write_to_file(&path.with_extension("json"), &pretty_json).await?;
+    match get_json_metadata(&mmap) {
+        Ok(json) => {
+            let pretty_json = serde_json::to_string_pretty(&json)?;
+            info!("{pretty_json}");
+            write_to_file(&path.with_extension("json"), &pretty_json).await?;
+        }
+        Err(e) => {
+            warn!("No metadata found for file: {:?}. Error: {}", path, e);
+        }
+    }
     Ok(())
 }
 
