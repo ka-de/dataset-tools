@@ -1,3 +1,5 @@
+// keep-tokens\src\main.rs
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
@@ -15,38 +17,42 @@
 /// `read_dir` function.
 
 use dataset_tools::{ walk_directory, read_file_content, split_content, write_to_file };
-use std::path::Path;
+use std::path::PathBuf;
 
-fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
     let keep_tokens = ["feral", "weasel"];
-    let directory = Path::new("E:\\training_dir_staging\\1_feral_weasel");
+    let directory = PathBuf::from("E:\\training_dir_staging");
 
     println!("Searching for .txt files in directory: {}", directory.display());
 
-    walk_directory(directory, "txt", |path| {
-        if
-            !path.file_name().unwrap().to_string_lossy().contains("-sample-prompts.txt") &&
-            path.file_name().unwrap().to_string_lossy() != "sample-prompts.txt"
-        {
-            println!("Processing file: {}", path.display());
-            let content = read_file_content(path.to_str().unwrap())?;
-            let (tags, sentences) = split_content(&content);
+    walk_directory(&directory, "txt", |path| {
+        let path_buf = path.to_path_buf(); // Convert &Path to PathBuf
+        async move {
+            if
+                !path_buf.file_name().unwrap().to_string_lossy().contains("-sample-prompts.txt") &&
+                path_buf.file_name().unwrap().to_string_lossy() != "sample-prompts.txt"
+            {
+                println!("Processing file: {}", path_buf.display());
+                let content = read_file_content(path_buf.to_str().unwrap()).await?;
+                let (tags, sentences) = split_content(&content);
 
-            let filtered_tags: Vec<_> = tags
-                .into_iter()
-                .filter(|tag| !keep_tokens.contains(tag))
-                .collect();
+                let filtered_tags: Vec<_> = tags
+                    .into_iter()
+                    .filter(|tag| !keep_tokens.contains(tag))
+                    .collect();
 
-            let new_content = format!(
-                "{} ||| {}, {}",
-                keep_tokens.join(", "),
-                filtered_tags.join(","),
-                sentences
-            );
+                let new_content = format!(
+                    "{} ||| {}, {}",
+                    keep_tokens.join(", "),
+                    filtered_tags.join(","),
+                    sentences
+                );
 
-            write_to_file(path, &new_content)?;
-            println!("Wrote new content to file: {}", path.display());
+                write_to_file(&path_buf, &new_content).await?;
+                println!("Wrote new content to file: {}", path_buf.display());
+            }
+            Ok(())
         }
-        Ok(())
-    })
+    }).await
 }

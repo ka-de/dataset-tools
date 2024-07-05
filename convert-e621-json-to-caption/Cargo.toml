@@ -9,3 +9,4 @@ dataset-tools = { path = ".." }
 regex = "1.10.5"
 walkdir = "2.5.0"
 serde_json = "1.0.120"
+tokio = { version = "1.38.0", features = ["full"] }

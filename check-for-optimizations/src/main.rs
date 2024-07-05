@@ -1,28 +1,35 @@
+// check-for-optimizations\src\main.rs
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
 use std::path::{ Path, PathBuf };
 use dataset_tools::{ walk_directory, read_file_content };
-use anyhow::{ Result, Context, anyhow };
+use anyhow::{ Result, Context };
 use toml::Value;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
-fn check_cargo_toml(path: &Path) -> Result<bool> {
-    let content = read_file_content(path.to_str().unwrap()).context("Failed to read file")?;
-    let toml_value: Value = content.parse()?;
+async fn check_cargo_toml(path: &Path) -> Result<bool> {
+    let content = read_file_content(path.to_str().unwrap()).await.context("Failed to read file")?;
+    let toml_value: Value = content.parse().context("Failed to parse TOML")?;
 
-    let profile = toml_value.get("profile").ok_or_else(|| anyhow!("No profile section found"))?;
+    let Some(profile) = toml_value.get("profile") else {
+        return Ok(false);
+    };
 
     // Check [profile.dev]
-    let dev = profile.get("dev").ok_or_else(|| anyhow!("No profile.dev section found"))?;
+    let Some(dev) = profile.get("dev") else {
+        return Ok(false);
+    };
     if dev.get("opt-level") != Some(&Value::Integer(3)) {
         return Ok(false);
     }
 
     // Check [profile.dev.package."*"]
-    let dev_package = dev
-        .get("package")
-        .and_then(|p| p.get("*"))
-        .ok_or_else(|| anyhow!("No profile.dev.package.\"*\" section found"))?;
+    let Some(dev_package) = dev.get("package").and_then(|p| p.get("*")) else {
+        return Ok(false);
+    };
     if
         dev_package.get("opt-level") != Some(&Value::Integer(3)) ||
         dev_package.get("codegen-units") != Some(&Value::Integer(1))
@@ -31,9 +38,9 @@ fn check_cargo_toml(path: &Path) -> Result<bool> {
     }
 
     // Check [profile.release]
-    let release = profile
-        .get("release")
-        .ok_or_else(|| anyhow!("No profile.release section found"))?;
+    let Some(release) = profile.get("release") else {
+        return Ok(false);
+    };
     if
         release.get("opt-level") != Some(&Value::Integer(3)) ||
         release.get("lto") != Some(&Value::Boolean(true)) ||
@@ -46,38 +53,38 @@ fn check_cargo_toml(path: &Path) -> Result<bool> {
     Ok(true)
 }
 
-fn process_target(target: &Path) -> Result<(), anyhow::Error> {
-    let mut missing_configs = Vec::new();
+async fn process_target(target: &Path) -> Result<(), anyhow::Error> {
+    let missing_configs = Arc::new(Mutex::new(Vec::new()));
 
     if target.is_file() && target.file_name().unwrap() == "Cargo.toml" {
-        if !check_cargo_toml(target)? {
-            missing_configs.push(target.to_owned());
+        if !check_cargo_toml(target).await.unwrap_or(false) {
+            missing_configs.lock().await.push(target.to_owned());
         }
     } else if target.is_dir() {
-        walk_directory(target, "toml", |path| {
-            if path.file_name().unwrap() == "Cargo.toml" {
-                match check_cargo_toml(path) {
-                    Ok(false) => {
-                        missing_configs.push(path.to_owned());
-                        Ok(())
-                    }
-                    Ok(true) => Ok(()),
-                    Err(e) => Err(std::io::Error::new(std::io::ErrorKind::Other, e)),
+        let missing_configs_clone = Arc::clone(&missing_configs);
+        walk_directory(target, "toml", move |path: PathBuf| {
+            let missing_configs = Arc::clone(&missing_configs_clone);
+            async move {
+                if
+                    path.file_name().unwrap() == "Cargo.toml" &&
+                    !check_cargo_toml(&path).await.unwrap_or(false)
+                {
+                    missing_configs.lock().await.push(path);
                 }
-            } else {
                 Ok(())
             }
-        })?;
+        }).await?;
     } else {
         println!("Invalid path: {}", target.display());
         return Ok(());
     }
 
+    let missing_configs = missing_configs.lock().await;
     if missing_configs.is_empty() {
         println!("All Cargo.toml files contain the required configurations.");
     } else {
         println!("The following Cargo.toml files are missing the required configurations:");
-        for file in &missing_configs {
+        for file in missing_configs.iter() {
             println!("{}", file.display());
         }
     }
@@ -85,11 +92,12 @@ fn process_target(target: &Path) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn main() -> Result<(), anyhow::Error> {
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
     let args: Vec<String> = std::env::args().collect();
     let target = if args.len() > 1 { PathBuf::from(&args[1]) } else { std::env::current_dir()? };
 
-    process_target(&target)?;
+    process_target(&target).await?;
 
     Ok(())
 }

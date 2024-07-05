@@ -1,28 +1,32 @@
+//! # e621.net JSON to Caption File Converter
+//!
+//! This script processes JSON files from e621.net, extracting "post" data to create caption files.
+//! It navigates through a directory and its subdirectories, reads each JSON file, and generates
+//! a caption file containing the post's rating and tags.
+//!
+//! Tags that match patterns in `IGNORED_TAGS` are ignored.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-/// This script is used for processing JSON files in a directory and its subdirectories.
-/// It reads each JSON file, extracts the "post" data, and creates a caption file with the post's rating and tags.
-///
-///  The main functions are:
-///  - `is_hidden`: Checks if a directory entry is hidden.
-///  - `should_ignore_tag`: Checks if a tag should be ignored based on the `IGNORED_TAGS` constant.
-///  - `process_tags`: Processes the tags from a JSON object and returns a vector of processed tags.
-///  - `process_file`: Processes a single JSON file. It opens the file, reads the JSON data, and creates a caption file with the post's rating and tags.
-///  - `recursive_process`: Recursively processes all JSON files in a directory and its subdirectories.
-///  - `main`: The entry point of the script. It sets the root directory and calls `recursive_process` to start the processing.
-///
-///  NOTE: This script uses the `serde_json` library for parsing JSON data,
-///        the `regex` library for regular expressions, and the `walkdir`
-///        library for walking through directories.
-
-use dataset_tools::{ process_json_file, write_to_file };
+use dataset_tools::{ process_json_file, walk_directory, write_to_file };
 use regex::Regex;
 use serde_json::Value;
-use std::path::{ Path, PathBuf };
+use std::{ path::{ Path, PathBuf }, sync::Arc };
+use tokio::io;
 
+/// Patterns of tags to be ignored during processing.
 const IGNORED_TAGS: [&str; 1] = [r"\bconditional_dnp\b"];
 
+/// Checks if a tag should be ignored based on predefined patterns.
+///
+/// # Arguments
+///
+/// * `tag` - A string slice representing the tag to be checked.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the tag matches any pattern in `IGNORED_TAGS`, otherwise `false`.
 fn should_ignore_tag(tag: &str) -> bool {
     IGNORED_TAGS.iter().any(|&ignored_tag_pattern| {
         let pattern = Regex::new(ignored_tag_pattern).unwrap();
@@ -30,6 +34,15 @@ fn should_ignore_tag(tag: &str) -> bool {
     })
 }
 
+/// Processes and formats tags from the JSON data.
+///
+/// # Arguments
+///
+/// * `tags_dict` - A reference to a JSON Value containing the tags.
+///
+/// # Returns
+///
+/// * `Vec<String>` - A vector of strings containing processed and formatted tags.
 fn process_tags(tags_dict: &Value) -> Vec<String> {
     let mut processed_tags = Vec::new();
     if let Value::Object(tags) = tags_dict {
@@ -60,48 +73,76 @@ fn process_tags(tags_dict: &Value) -> Vec<String> {
     processed_tags
 }
 
-fn process_file(file_path: &Path) -> std::io::Result<()> {
-    println!("Processing file: {file_path:?}");
-    process_json_file(file_path, |data| {
-        if let Some(post) = data.get("post") {
-            if let Some(file_data) = post.get("file") {
-                if let Some(url) = file_data.get("url").and_then(|u| u.as_str()) {
-                    let filename = Path::new(url).file_stem().unwrap().to_str().unwrap();
-                    let caption_path = file_path.with_file_name(format!("{filename}.txt"));
+/// Processes the JSON data and creates a caption file.
+///
+/// # Arguments
+///
+/// * `data` - A reference to a JSON Value containing the post data.
+/// * `file_path` - A reference to an `Arc<PathBuf>` representing the file path.
+///
+/// # Returns
+///
+/// * `io::Result<()>` - The result of the file writing operation.
+async fn process_json_data(data: &Value, file_path: &Arc<PathBuf>) -> io::Result<()> {
+    if let Some(post) = data.get("post") {
+        if let Some(file_data) = post.get("file") {
+            if let Some(url) = file_data.get("url").and_then(|u| u.as_str()) {
+                let filename = Path::new(url).file_stem().unwrap().to_str().unwrap();
+                let caption_path = file_path.with_file_name(format!("{filename}.txt"));
 
-                    let rating = post
-                        .get("rating")
-                        .and_then(|r| r.as_str())
-                        .unwrap_or("q");
-                    let rating_str = match rating {
-                        "s" => "rating_safe, ",
-                        "e" => "rating_explicit, ",
-                        _ => "rating_questionable, ",
-                    };
+                let rating = post
+                    .get("rating")
+                    .and_then(|r| r.as_str())
+                    .unwrap_or("q");
+                let rating_str = match rating {
+                    "s" => "safe, ",
+                    "e" => "nsfw, ",
+                    _ => "questionable, ",
+                };
 
-                    let mut caption_content = String::from(rating_str);
+                let mut caption_content = String::from(rating_str);
 
-                    if let Some(tags_data) = post.get("tags") {
-                        let processed_tags = process_tags(tags_data);
-                        if !processed_tags.is_empty() {
-                            caption_content.push_str(&processed_tags.join(", "));
+                if let Some(tags_data) = post.get("tags") {
+                    let processed_tags = process_tags(tags_data);
+                    if !processed_tags.is_empty() {
+                        caption_content.push_str(&processed_tags.join(", "));
 
-                            println!("{}", "-".repeat(50));
-                            println!("Caption file: {caption_path:?}");
-                            println!("Tags: {caption_content}");
-                            println!("{}", "-".repeat(50));
-                        }
+                        println!("{}", "-".repeat(50));
+                        println!("Caption file: {caption_path:?}");
+                        println!("Tags: {caption_content}");
+                        println!("{}", "-".repeat(50));
                     }
-
-                    write_to_file(&caption_path, &caption_content)?;
                 }
+
+                write_to_file(&caption_path, &caption_content).await?;
             }
         }
-        Ok(())
-    })
+    }
+    Ok(())
 }
 
-fn main() -> std::io::Result<()> {
+/// Processes a single file.
+///
+/// # Arguments
+///
+/// * `file_path` - A `PathBuf` representing the file path.
+///
+/// # Returns
+///
+/// * `io::Result<()>` - The result of the file processing operation.
+async fn process_file(file_path: PathBuf) -> io::Result<()> {
+    println!("Processing file: {file_path:?}");
+    let file_path = Arc::new(file_path);
+
+    process_json_file(&file_path, |data| {
+        let file_path = Arc::clone(&file_path);
+        let data_owned = data.clone();
+        async move { process_json_data(&data_owned, &file_path).await }
+    }).await
+}
+
+#[tokio::main]
+async fn main() -> io::Result<()> {
     let root_directory = PathBuf::from(r"E:\training_dir_staging");
-    dataset_tools::walk_directory(&root_directory, "json", process_file)
+    walk_directory(&root_directory, "json", process_file).await
 }

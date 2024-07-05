@@ -3,20 +3,25 @@
 
 use dataset_tools::{ walk_directory, is_image_file, caption_file_exists_and_not_empty };
 use std::path::Path;
+use tokio::io;
 
-fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> Result<(), io::Error> {
     let root_dir = Path::new(r"E:\training_dir\_");
-    let mut missing_captions = Vec::new();
+    let missing_captions = Vec::new();
 
     walk_directory(root_dir, "", |path| {
-        if is_image_file(path) {
-            let caption_path = path.with_extension("txt");
-            if !caption_file_exists_and_not_empty(&caption_path) {
-                missing_captions.push(path.to_string_lossy().to_string());
+        let mut value = missing_captions.clone();
+        async move {
+            if is_image_file(&path) {
+                let caption_path = path.with_extension("txt");
+                if !caption_file_exists_and_not_empty(&caption_path).await {
+                    value.push(path.to_string_lossy().to_string());
+                }
             }
+            Ok(())
         }
-        Ok(())
-    })?;
+    }).await?;
 
     if missing_captions.is_empty() {
         println!("All image files have corresponding non-empty caption files.");

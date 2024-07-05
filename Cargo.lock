@@ -3,6 +3,15 @@
 version = 3
 
 [[package]]
+name = "addr2line"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e4503c46a5c0c7844e948c9a4d6acd9f50cccb4de1c48eb9e291ea17470c678"
+dependencies = [
+ "gimli",
+]
+
+[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -131,6 +140,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "backtrace"
+version = "0.3.73"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cc23269a4f8976d0a4d2e7109211a419fe30e8d88d677cd60b6bc79c5732e0a"
+dependencies = [
+ "addr2line",
+ "cc",
+ "cfg-if",
+ "libc",
+ "miniz_oxide",
+ "object",
+ "rustc-demangle",
+]
+
+[[package]]
 name = "bit_field"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -185,6 +209,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
+name = "bytes"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
+
+[[package]]
 name = "cc"
 version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -218,6 +248,7 @@ dependencies = [
  "crossterm",
  "dataset-tools",
  "regex",
+ "tokio",
  "walkdir",
 ]
 
@@ -226,6 +257,7 @@ name = "check-for-cringe-summaries"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
  "walkdir",
 ]
 
@@ -235,6 +267,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dataset-tools",
+ "tokio",
  "toml",
 ]
 
@@ -246,6 +279,7 @@ dependencies = [
  "dataset-tools",
  "env_logger",
  "log",
+ "tokio",
 ]
 
 [[package]]
@@ -255,6 +289,7 @@ dependencies = [
  "crossterm",
  "dataset-tools",
  "regex",
+ "tokio",
  "walkdir",
 ]
 
@@ -335,6 +370,7 @@ name = "compress-exe"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
 ]
 
 [[package]]
@@ -343,6 +379,7 @@ version = "0.1.0"
 dependencies = [
  "dataset-tools",
  "serde_json",
+ "tokio",
  "walkdir",
 ]
 
@@ -353,6 +390,7 @@ dependencies = [
  "dataset-tools",
  "regex",
  "serde_json",
+ "tokio",
  "walkdir",
 ]
 
@@ -370,6 +408,7 @@ name = "create-empty-caption-files"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
  "walkdir",
 ]
 
@@ -443,6 +482,7 @@ dependencies = [
  "regex",
  "safetensors",
  "serde_json",
+ "tokio",
  "walkdir",
 ]
 
@@ -451,6 +491,7 @@ name = "delete-url-files"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
  "walkdir",
 ]
 
@@ -517,9 +558,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dataset-tools",
+ "env_logger",
  "memmap2",
  "safetensors",
  "serde_json",
+ "tokio",
  "walkdir",
 ]
 
@@ -557,6 +600,7 @@ version = "0.1.0"
 dependencies = [
  "dataset-tools",
  "serde_json",
+ "tokio",
  "walkdir",
 ]
 
@@ -580,6 +624,12 @@ dependencies = [
  "color_quant",
  "weezl",
 ]
+
+[[package]]
+name = "gimli"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40ecd4077b5ae9fd2e9e169b102c6c330d0605168eb0e8bf79952b256dbefffd"
 
 [[package]]
 name = "glob"
@@ -608,6 +658,12 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
+name = "hermit-abi"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
 
 [[package]]
 name = "hotdogaug"
@@ -680,6 +736,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dataset-tools",
+ "tokio",
 ]
 
 [[package]]
@@ -734,6 +791,7 @@ name = "keep-tokens"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
  "walkdir",
 ]
 
@@ -749,6 +807,7 @@ version = "0.1.0"
 dependencies = [
  "dataset-tools",
  "image",
+ "tokio",
  "walkdir",
 ]
 
@@ -920,6 +979,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_cpus"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
+dependencies = [
+ "hermit-abi",
+ "libc",
+]
+
+[[package]]
+name = "object"
+version = "0.36.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "081b846d1d56ddfc18fdf1a922e4f6e07a11768ea1b92dec44e42b72712ccfce"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -993,6 +1071,12 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
+
+[[package]]
+name = "pin-project-lite"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bda66fc9667c18cb2758a2ac84d1167245054bcf85d5d1aaa6923f45801bdd02"
 
 [[package]]
 name = "pkg-config"
@@ -1214,6 +1298,7 @@ name = "remove-extra-file-extensions"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
  "walkdir",
 ]
 
@@ -1225,6 +1310,12 @@ checksum = "a7439be6844e40133eda024efd85bf07f59d0dd2f59b10c00dd6cfb92cc5c741"
 dependencies = [
  "bytemuck",
 ]
+
+[[package]]
+name = "rustc-demangle"
+version = "0.1.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
 
 [[package]]
 name = "ryu"
@@ -1262,6 +1353,7 @@ name = "search-for-empty-captions"
 version = "0.1.0"
 dependencies = [
  "dataset-tools",
+ "tokio",
  "walkdir",
 ]
 
@@ -1269,8 +1361,10 @@ dependencies = [
 name = "search-for-superscript-numbers"
 version = "0.1.0"
 dependencies = [
+ "crossterm",
  "dataset-tools",
  "regex",
+ "tokio",
  "walkdir",
 ]
 
@@ -1378,6 +1472,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
+name = "socket2"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce305eb0b4296696835b71df73eb912e0f1ffd2556a501fcede6e0c50349191c"
+dependencies = [
+ "libc",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1451,6 +1555,36 @@ dependencies = [
  "flate2",
  "jpeg-decoder",
  "weezl",
+]
+
+[[package]]
+name = "tokio"
+version = "1.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba4f4a02a7a80d6f274636f0aa95c7e383b912d41fe721a31f29e29698585a4a"
+dependencies = [
+ "backtrace",
+ "bytes",
+ "libc",
+ "mio",
+ "num_cpus",
+ "parking_lot",
+ "pin-project-lite",
+ "signal-hook-registry",
+ "socket2",
+ "tokio-macros",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f5ae998a069d4b5aba8ee9dad856af7d520c3699e6159b185c2acd48155d39a"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

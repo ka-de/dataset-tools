@@ -16,35 +16,36 @@
 /// does not exist or is not readable), the program will return an `Err` variant containing the error.
 
 use std::env;
-use std::path::Path;
-use std::process::Command;
+use std::path::{ Path, PathBuf };
+use tokio::process::Command as AsyncCommand;
 use dataset_tools::walk_directory;
 
-fn compress_exe(path: &Path) -> std::io::Result<()> {
+async fn compress_exe(path: PathBuf) -> std::io::Result<()> {
     println!("Compressing: {}", path.display());
-    let status = Command::new("upx").arg("--best").arg(path).status()?;
+    let status = AsyncCommand::new("upx").arg("--best").arg(&path).status().await?;
     if !status.success() {
         eprintln!("Failed to compress {}", path.display());
     }
     Ok(())
 }
 
-fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let target_dir = args
         .get(1)
-        .map_or(".\\target\\x86_64-pc-windows-msvc\\release\\", String::as_str);
+        .map_or("..\\target\\x86_64-pc-windows-msvc\\release\\", String::as_str);
 
     let target_path = Path::new(target_dir);
 
     if target_path.is_file() {
         if target_path.extension().map_or(false, |ext| ext == "exe") {
-            compress_exe(target_path)?;
+            compress_exe(target_path.to_path_buf()).await?;
         } else {
             println!("The specified file is not an .exe file.");
         }
     } else if target_path.is_dir() {
-        walk_directory(target_path, "exe", compress_exe)?;
+        walk_directory(target_path, "exe", compress_exe).await?;
     } else {
         println!("The specified path does not exist or is not accessible.");
     }

@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 dataset-tools = { path = ".." }
 walkdir = "2.5.0"
+tokio = { version = "1.38.0", features = ["full"] }

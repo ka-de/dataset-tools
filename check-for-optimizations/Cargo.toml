@@ -7,3 +7,4 @@ edition = "2021"
 dataset-tools = { path = ".." }
 anyhow = "1.0.86"
 toml = "0.8.14"
+tokio = { version = "1.38.0", features = ["full"] }

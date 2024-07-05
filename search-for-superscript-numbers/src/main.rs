@@ -1,29 +1,52 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-use dataset_tools::walk_directory;
+use crossterm::{ ExecutableCommand, style::Print };
+use crossterm::style::{ Color, SetForegroundColor, ResetColor };
 use regex::Regex;
-use std::fs::File;
-use std::io::{ self, BufRead, BufReader };
+use std::io::{ self, stdout, Write };
+use tokio::fs::File;
+use tokio::io::{ AsyncBufReadExt, BufReader };
 use std::path::Path;
+use dataset_tools::walk_directory;
 
-fn main() -> io::Result<()> {
-    let re = Regex::new(r"\b[¹²³⁴⁵⁶⁷⁸⁹]\b").unwrap();
-    let dir = Path::new(r"C:\Users\kade\code\cringe.live\docs");
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    let re = Regex::new(r"[¹²³⁴⁵⁶⁷⁸⁹]").unwrap();
+    let dir = Path::new(r"C:\Users\kade\code\cringe.live\");
 
     walk_directory(dir, "md", |path| {
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
+        let value = re.clone();
+        async move {
+            let file = File::open(&path).await?;
+            let reader = BufReader::new(file);
+            let mut lines = reader.lines();
 
-        for (index, line) in reader.lines().enumerate() {
-            let line = line?;
-            if re.is_match(&line) {
-                println!("{}:{}: {}", path.display(), index + 1, line);
+            let mut index = 1;
+            while let Some(line) = lines.next_line().await? {
+                if let Some(mat) = value.find(&line) {
+                    let prefix = &line[..mat.start()];
+                    let match_str = mat.as_str();
+                    let suffix = &line[mat.end()..];
+
+                    stdout().execute(SetForegroundColor(Color::Magenta))?;
+                    stdout().execute(Print(format!("{}:", path.display())))?;
+                    stdout().execute(SetForegroundColor(Color::Green))?;
+                    stdout().execute(Print(format!("{index}: ")))?;
+                    stdout().execute(ResetColor)?;
+                    stdout().execute(Print(prefix))?;
+                    stdout().execute(SetForegroundColor(Color::Red))?;
+                    stdout().execute(Print(match_str))?;
+                    stdout().execute(ResetColor)?;
+                    stdout().execute(Print(suffix))?;
+                    stdout().write_all(b"\n")?;
+                }
+                index += 1;
             }
-        }
 
-        Ok(())
-    })?;
+            Ok(())
+        }
+    }).await?;
 
     Ok(())
 }

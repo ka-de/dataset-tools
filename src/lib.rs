@@ -1,20 +1,20 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-// src/lib.rs
+// src\lib.rs
 extern crate image;
 
-use std::collections::HashSet;
-use std::fs::{ self, File };
-use std::io::{ self, BufRead, Write };
 use std::path::{ Path, PathBuf };
 use log::info;
+use tokio::task;
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::Value;
 use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
 use image::GenericImageView;
+use tokio::fs::{ self, File };
+use tokio::io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader };
 
 /// Checks if a directory entry is the target directory.
 ///
@@ -55,15 +55,23 @@ fn is_git_dir(entry: &DirEntry) -> bool {
 /// # Errors
 ///
 /// Returns an `io::Error` if the file cannot be read.
-pub fn process_rust_file(path: &Path, files_without_warning: &mut Vec<PathBuf>) -> io::Result<()> {
+pub async fn process_rust_file(
+    path: &Path,
+    files_without_warning: &mut Vec<PathBuf>
+) -> io::Result<()> {
     info!("Processing file: {}", path.display());
 
-    let lines = read_lines(path)?;
-    if lines.len() >= 2 {
-        let warning_line = "#![warn(clippy::all, clippy::pedantic)]";
-        if !lines[0].contains(warning_line) && !lines[1].contains(warning_line) {
-            files_without_warning.push(path.to_owned());
-        }
+    let lines = read_lines(path).await?;
+    let warning_line = "#![warn(clippy::all, clippy::pedantic)]";
+
+    // Check the first 20 lines for the warning
+    let has_warning = lines
+        .iter()
+        .take(20)
+        .any(|line| line.contains(warning_line));
+
+    if !has_warning {
+        files_without_warning.push(path.to_owned());
     }
     Ok(())
 }
@@ -74,24 +82,18 @@ pub fn process_rust_file(path: &Path, files_without_warning: &mut Vec<PathBuf>) 
 /// # Errors
 ///
 /// Returns an `io::Error` if a file cannot be opened or read.
-pub fn walk_rust_files<F>(dir: &Path, mut callback: F) -> io::Result<()>
-    where F: FnMut(&Path) -> io::Result<()>
+pub async fn walk_rust_files<F, Fut>(dir: impl AsRef<Path>, callback: F) -> io::Result<()>
+    where F: Fn(PathBuf) -> Fut, Fut: std::future::Future<Output = io::Result<()>>
 {
-    info!("Attempting to walk directory: {}", dir.display());
-    let mut processed_files = HashSet::new();
-
     let walker = WalkDir::new(dir).follow_links(true);
 
     for entry in walker
         .into_iter()
         .filter_entry(|e| !is_hidden(e) && !is_git_dir(e) && !is_target_dir(e))
         .filter_map(Result::ok) {
-        let path = entry.path();
+        let path = entry.path().to_owned();
         if entry.file_type().is_file() && path.extension().map_or(false, |ext| ext == "rs") {
-            let canonical_path = path.canonicalize()?;
-            if processed_files.insert(canonical_path.clone()) {
-                callback(path)?;
-            }
+            callback(path).await?;
         }
     }
 
@@ -104,10 +106,16 @@ pub fn walk_rust_files<F>(dir: &Path, mut callback: F) -> io::Result<()>
 ///
 /// Returns an `io::Error` if the file cannot be opened or read.
 #[must_use = "Reads all lines from a file and returns them, requiring handling of the result"]
-pub fn read_lines(path: &Path) -> io::Result<Vec<String>> {
-    let file = File::open(path)?;
-    let reader = io::BufReader::new(file);
-    reader.lines().collect()
+pub async fn read_lines(path: &Path) -> io::Result<Vec<String>> {
+    let file = File::open(path).await?;
+    let mut reader = BufReader::new(file);
+    let mut lines = Vec::new();
+    let mut line = String::new();
+    while reader.read_line(&mut line).await? > 0 {
+        lines.push(line.trim().to_string());
+        line.clear();
+    }
+    Ok(lines)
 }
 
 /// Processes a JSON file with a given processor function.
@@ -116,13 +124,12 @@ pub fn read_lines(path: &Path) -> io::Result<Vec<String>> {
 ///
 /// Returns an `io::Error` if the file cannot be opened, read, or if the JSON cannot be parsed.
 #[must_use = "Processes a JSON file and requires handling of the result to ensure proper file processing"]
-pub fn process_json_file<F>(file_path: &Path, processor: F) -> io::Result<()>
-    where F: Fn(&Value) -> io::Result<()>
+pub async fn process_json_file<F, Fut>(file_path: &Path, processor: F) -> io::Result<()>
+    where F: FnOnce(&Value) -> Fut, Fut: std::future::Future<Output = io::Result<()>>
 {
-    let file = File::open(file_path)?;
-    let reader = io::BufReader::new(file);
-    let data: Value = serde_json::from_reader(reader)?;
-    processor(&data)
+    let content = fs::read_to_string(file_path).await?;
+    let data: Value = serde_json::from_str(&content)?;
+    processor(&data).await
 }
 
 /// Writes content to a file at the specified path.
@@ -131,9 +138,9 @@ pub fn process_json_file<F>(file_path: &Path, processor: F) -> io::Result<()>
 ///
 /// Returns an `io::Error` if the file cannot be created or written to.
 #[must_use = "Writes content to a file and requires handling of the result to ensure data is saved"]
-pub fn write_to_file(path: &Path, content: &str) -> io::Result<()> {
-    let mut file = File::create(path)?;
-    file.write_all(content.as_bytes())
+pub async fn write_to_file(path: &Path, content: &str) -> io::Result<()> {
+    let mut file = File::create(path).await?;
+    file.write_all(content.as_bytes()).await
 }
 
 /// Walks through a directory and applies a callback function to each file with the specified extension.
@@ -142,18 +149,35 @@ pub fn write_to_file(path: &Path, content: &str) -> io::Result<()> {
 ///
 /// Returns an `io::Error` if there's an issue with directory traversal or file operations.
 #[must_use = "Walks through a directory and requires handling of the result to ensure proper file processing"]
-pub fn walk_directory<F>(directory: &Path, file_extension: &str, mut callback: F) -> io::Result<()>
-    where F: FnMut(&Path) -> io::Result<()>
+pub async fn walk_directory<F, Fut>(
+    dir: impl AsRef<Path>,
+    extension: &str,
+    callback: F
+)
+    -> io::Result<()>
+    where F: Fn(PathBuf) -> Fut, Fut: std::future::Future<Output = io::Result<()>> + Send + 'static
 {
-    for entry in WalkDir::new(directory)
+    let dir = dir.as_ref();
+    info!("Starting directory walk in: {dir:?}");
+
+    for entry in WalkDir::new(dir)
         .into_iter()
-        .filter_entry(|e| !is_hidden(e) && !is_git_dir(e))
+        .filter_entry(|e| {
+            let is_hidden = !is_hidden(e);
+            let is_git_dir = !is_git_dir(e);
+            info!("Entry: {e:?}, is_hidden: {is_hidden}, is_git_dir: {is_git_dir}");
+            is_hidden && is_git_dir
+        })
         .filter_map(Result::ok) {
-        let path = entry.path();
-        if path.extension().map_or(false, |ext| ext == file_extension) {
-            callback(path)?;
+        let path = entry.path().to_owned();
+        info!("Processing path: {path:?}");
+        if path.extension().map_or(false, |ext| ext == extension) {
+            info!("Path matches extension: {path:?}");
+            task::spawn(callback(path)).await??;
         }
     }
+
+    info!("Finished directory walk in: {dir:?}");
     Ok(())
 }
 
@@ -189,15 +213,15 @@ pub fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
 ///
 /// Returns an error if the file cannot be opened, read, or processed.
 #[must_use = "Processes a SafeTensors file and requires handling of the result to ensure metadata is extracted"]
-pub fn process_safetensors_file(path: &Path) -> Result<()> {
-    let file = File::open(path)?;
+pub async fn process_safetensors_file(path: &Path) -> Result<()> {
+    let file = File::open(path).await?;
     let mmap = unsafe { Mmap::map(&file)? };
 
     let json = get_json_metadata(&mmap)?;
     let pretty_json = serde_json::to_string_pretty(&json)?;
 
-    println!("{pretty_json}");
-    write_to_file(&path.with_extension("json"), &pretty_json)?;
+    info!("{pretty_json}");
+    write_to_file(&path.with_extension("json"), &pretty_json).await?;
     Ok(())
 }
 
@@ -212,9 +236,9 @@ pub fn is_image_file(path: &Path) -> bool {
 
 /// Checks if a caption file exists and is not empty.
 #[must_use = "Checks if the caption file exists and is not empty and the result should be checked"]
-pub fn caption_file_exists_and_not_empty(path: &Path) -> bool {
+pub async fn caption_file_exists_and_not_empty(path: &Path) -> bool {
     if path.exists() {
-        match fs::read_to_string(path) {
+        match fs::read_to_string(path).await {
             Ok(content) => !content.trim().is_empty(),
             Err(_) => false,
         }
@@ -229,17 +253,17 @@ pub fn caption_file_exists_and_not_empty(path: &Path) -> bool {
 ///
 /// Returns an `io::Error` if the file cannot be read, parsed as JSON, or written back.
 #[must_use = "Formats a JSON file and requires handling of the result to ensure the file is properly formatted"]
-pub fn format_json_file(path: &Path) -> io::Result<()> {
+pub async fn format_json_file(path: PathBuf) -> io::Result<()> {
     info!("Processing file: {}", path.display());
 
-    let file_content = fs::read_to_string(path)?;
+    let file_content = fs::read_to_string(path.clone()).await?;
     let json: Value = serde_json
         ::from_str(&file_content)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let pretty_json = serde_json
         ::to_string_pretty(&json)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    fs::write(path, pretty_json)?;
+    fs::write(path.clone(), pretty_json).await?;
 
     info!("Formatted {} successfully.", path.display());
     Ok(())
@@ -251,10 +275,8 @@ pub fn format_json_file(path: &Path) -> io::Result<()> {
 ///
 /// Returns an `io::Error` if the file cannot be opened or read.
 #[must_use = "Reads the content of a file and requires handling of the result to ensure the content is retrieved"]
-pub fn read_file_content(file: &str) -> io::Result<String> {
-    let file = File::open(file)?;
-    let reader = io::BufReader::new(file);
-    reader.lines().collect::<Result<String, _>>()
+pub async fn read_file_content(file: &str) -> io::Result<String> {
+    fs::read_to_string(file).await
 }
 
 /// Splits content into tags and sentences.
@@ -272,11 +294,11 @@ pub fn split_content(content: &str) -> (Vec<&str>, &str) {
 ///
 /// Returns an `io::Error` if the file cannot be renamed.
 #[must_use = "Renames a file and requires handling of the result to ensure the file is properly renamed"]
-pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
+pub async fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
     if let Some(old_name) = path.to_str() {
         if old_name.contains(".jpeg") || old_name.contains(".png") || old_name.contains(".jpg") {
             let new_name = old_name.replace(".jpeg", "").replace(".png", "").replace(".jpg", "");
-            fs::rename(old_name, &new_name)?;
+            fs::rename(old_name, &new_name).await?;
             info!("Renamed {old_name} to {new_name}");
         }
     }
@@ -289,9 +311,9 @@ pub fn rename_file_without_image_extension(path: &Path) -> io::Result<()> {
 ///
 /// Returns an `io::Error` if the file cannot be read, parsed, or written.
 #[must_use = "Processes a JSON file to create a caption file and requires handling of the result to ensure proper conversion"]
-pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
+pub async fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
     if input_path.extension().and_then(|s| s.to_str()) == Some("json") {
-        let content = fs::read_to_string(input_path)?;
+        let content = fs::read_to_string(input_path).await?;
         let json: Value = serde_json::from_str(&content)?;
 
         if let Value::Object(map) = json {
@@ -314,16 +336,15 @@ pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
             tags.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
             let output_path = input_path.with_extension("txt");
-            let mut output_file = File::create(output_path)?;
-            write!(
-                output_file,
-                "{}",
+            let mut output_file = File::create(output_path).await?;
+            output_file.write_all(
                 tags
                     .iter()
                     .map(|(tag, _)| tag.clone())
                     .collect::<Vec<String>>()
                     .join(", ")
-            )?;
+                    .as_bytes()
+            ).await?;
         }
     }
     Ok(())
@@ -335,18 +356,32 @@ pub fn process_json_to_caption(input_path: &Path) -> io::Result<()> {
 ///
 /// Returns an `io::Error` if there's an issue with file operations.
 #[must_use = "Deletes files with a specific extension and requires handling of the result to ensure proper file deletion"]
-pub fn delete_files_with_extension(target_dir: &Path, extension: &str) -> io::Result<()> {
+pub async fn delete_files_with_extension(target_dir: &Path, extension: &str) -> io::Result<()> {
+    let mut tasks = Vec::new();
+
     for entry in WalkDir::new(target_dir).into_iter().filter_map(Result::ok) {
-        let path = entry.path();
+        let path = entry.path().to_owned();
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
                 if file_extension.eq_ignore_ascii_case(extension) {
-                    fs::remove_file(path)?;
-                    println!("Removed: {}", path.display());
+                    tasks.push(
+                        tokio::spawn(async move {
+                            if let Err(e) = fs::remove_file(&path).await {
+                                eprintln!("Failed to remove {}: {}", path.display(), e);
+                            } else {
+                                println!("Removed: {}", path.display());
+                            }
+                        })
+                    );
                 }
             }
         }
     }
+
+    for task in tasks {
+        task.await?;
+    }
+
     Ok(())
 }
 

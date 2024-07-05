@@ -60,3 +60,4 @@ safetensors = "0.4.3"
 memmap2 = "0.9.4"
 anyhow = "1.0.86"
 image = "0.25.1"
+tokio = { version = "1.38.0", features = ["full"] }

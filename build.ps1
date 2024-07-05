@@ -13,4 +13,3 @@ Get-ChildItem -Path $sourceDir -File -Filter "*.exe" | Copy-Item -Destination $d
 
 # Run the compress-exe.exe
 #& "C:\Users\kade\code\dataset-tools\target\x86_64-pc-windows-msvc\release\compress-exe.exe" "C:\Users\kade\Desktop\apps\dataset-tools\"
-

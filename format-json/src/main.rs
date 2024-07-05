@@ -1,3 +1,5 @@
+// format-json\src\main.rs
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
@@ -8,21 +10,19 @@
 /// and the `walkdir` crate to recursively traverse directories.
 
 use dataset_tools::{ walk_directory, format_json_file };
-use std::{ env, io };
+use std::env;
 use std::path::Path;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     let directory_path = args
         .get(1)
         .map_or("E:/projects/yiff_toolkit/ponyxl_loras", String::as_str);
 
     walk_directory(Path::new(directory_path), "json", |path| {
-        format_json_file(path).map_err(|e| {
-            println!("Failed to format {}: {}", path.display(), e);
-            io::Error::new(io::ErrorKind::Other, e)
-        })
-    })?;
+        Box::pin(format_json_file(path))
+    }).await?;
 
     Ok(())
 }
