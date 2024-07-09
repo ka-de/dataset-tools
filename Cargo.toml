@@ -17,6 +17,7 @@ members = [
   "insert-pedantic",
   "keep-tokens",
   "letterbox-remover",
+  "remove-escape-characters",
   "remove-extra-file-extensions",
   "remove-transparency",
   "search-for-empty-captions",
