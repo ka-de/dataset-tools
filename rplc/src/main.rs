@@ -12,13 +12,18 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let search_string = &args[1];
-    let replace_string = &args[2];
+    let search_string = args[1].clone();
+    let replace_string = args[2].clone();
 
     println!("Replacing '{search_string}' with '{replace_string}' in all .txt files...");
 
-    walk_directory(".", "txt", |path| async move {
-        process_file(&path, search_string, replace_string).await
+    let search_string_clone = search_string.clone();
+    let replace_string_clone = replace_string.clone();
+
+    walk_directory(".", "txt", move |path| {
+        let search = search_string_clone.clone();
+        let replace = replace_string_clone.clone();
+        async move { process_file(&path, &search, &replace).await }
     }).await?;
 
     println!("Replacement complete.");

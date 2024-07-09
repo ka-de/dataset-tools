@@ -20,6 +20,7 @@ members = [
   "remove-escape-characters",
   "remove-extra-file-extensions",
   "remove-transparency",
+  "rplc",
   "search-for-empty-captions",
   "search-for-superscript-numbers",
 ]
