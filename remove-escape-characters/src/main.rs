@@ -30,7 +30,12 @@ async fn process_txt_file(path: std::path::PathBuf) -> Result<()> {
     println!("Processing file: {}", path.display());
 
     // Read the content of the file
-    let content = read_file_content(path.to_str().unwrap()).await?;
+    let content = match path.to_str() {
+        Some(str_path) => read_file_content(str_path).await?,
+        None => {
+            return Err(anyhow::anyhow!("Invalid path"));
+        }
+    };
 
     // Remove all backslash characters
     let processed_content = content.replace('\\', "");
