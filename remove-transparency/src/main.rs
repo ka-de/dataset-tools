@@ -1,3 +1,7 @@
+// remove-transparency\src\main.rs
+
+// This program removes the alpha channel from PNG files in a target directory and subdirectories.
+
 use std::path::PathBuf;
 use image::{ GenericImageView, ImageBuffer, Rgba };
 use dataset_tools::{ walk_directory, is_image_file };

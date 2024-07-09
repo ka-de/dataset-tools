@@ -1,5 +1,7 @@
 // remove-extra-file-extensions\src\main.rs
 
+// This program removes extra file extensions from .txt files in a target directory and subdirectories.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
