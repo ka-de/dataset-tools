@@ -10,7 +10,8 @@ use std::path::Path;
 use walkdir::WalkDir;
 use dataset_tools::remove_letterbox;
 
-fn main() -> std::io::Result<()> {
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         eprintln!("Usage: {} <input_directory>", args[0]);
@@ -25,7 +26,7 @@ fn main() -> std::io::Result<()> {
         let path = entry.path();
         if path.is_file() && dataset_tools::is_image_file(path) {
             println!("Processing: {}", path.display());
-            remove_letterbox(path)?;
+            remove_letterbox(path).await?;
         }
     }
 

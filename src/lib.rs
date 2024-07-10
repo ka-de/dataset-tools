@@ -6,15 +6,13 @@ extern crate image;
 
 use std::path::{ Path, PathBuf };
 use log::{ info, warn };
-use tokio::task;
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::Value;
 use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
-use image::GenericImageView;
-use tokio::fs::{ self, File };
-use tokio::io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader };
+use image::{ GenericImageView, ImageFormat };
+use tokio::{ task, fs::{ self, File }, io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader } };
 use regex::Regex;
 use regex::Error as RegexError;
 
@@ -414,8 +412,11 @@ pub async fn delete_files_with_extension(target_dir: &Path, extension: &str) -> 
 ///
 /// Returns an `io::Error` if there's an issue with image processing or file operations.
 #[must_use = "Processes an image to remove letterboxing and requires handling of the result to ensure proper image modification"]
-pub fn remove_letterbox(input_path: &Path) -> io::Result<()> {
-    let mut img = image::open(input_path).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+pub async fn remove_letterbox(input_path: &Path) -> io::Result<()> {
+    let img_bytes = fs::read(input_path).await?;
+    let mut img = image
+        ::load_from_memory(&img_bytes)
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
     let (width, height) = img.dimensions();
 
     let mut top = 0;
@@ -464,7 +465,11 @@ pub fn remove_letterbox(input_path: &Path) -> io::Result<()> {
     }
 
     let cropped = img.crop(left, top, right - left + 1, bottom - top + 1);
-    cropped.save(input_path).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    let mut buf = Vec::new();
+    cropped
+        .write_to(&mut std::io::Cursor::new(&mut buf), ImageFormat::Png)
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    fs::write(input_path, buf).await?;
 
     Ok(())
 }
