@@ -7,7 +7,7 @@ extern crate image;
 use std::path::{ Path, PathBuf };
 use log::{ info, warn };
 use walkdir::{ DirEntry, WalkDir };
-use serde_json::Value;
+use serde_json::{ Value, Map };
 use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
@@ -205,12 +205,15 @@ pub async fn walk_directory<F, Fut>(
 ///
 /// Returns an error if the metadata cannot be read or parsed.
 #[must_use = "Retrieves JSON metadata and requires handling of the result to ensure metadata is obtained"]
-pub fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
-    let (_header_size, metadata) =
-        SafeTensors::read_metadata(buffer).context("Cannot read metadata")?;
+pub async fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
+    let buffer_vec = buffer.to_vec(); // Clone the buffer data
+    let (_header_size, metadata) = task
+        ::spawn_blocking(move || { SafeTensors::read_metadata(&buffer_vec) }).await
+        .context("Cannot read metadata")??;
+
     let metadata = metadata.metadata().as_ref().context("No metadata available")?;
 
-    let mut kv = serde_json::Map::with_capacity(metadata.len());
+    let mut kv = Map::with_capacity(metadata.len());
     for (key, value) in metadata {
         let json_value = serde_json::from_str(value).unwrap_or_else(|_| {
             match value.as_str() {
@@ -235,7 +238,7 @@ pub async fn process_safetensors_file(path: &Path) -> Result<()> {
     let file = File::open(path).await?;
     let mmap = unsafe { Mmap::map(&file)? };
 
-    match get_json_metadata(&mmap) {
+    match get_json_metadata(&mmap).await {
         Ok(json) => {
             let pretty_json = serde_json::to_string_pretty(&json)?;
             info!("{pretty_json}");
