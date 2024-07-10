@@ -1,3 +1,8 @@
+// check-for-attributes\src\main.rs
+
+// This program searches for Rust source files that contain built-in attributes except derive, must_use
+// and ones I don't know about yet and reports each one.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

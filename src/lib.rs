@@ -15,6 +15,23 @@ use safetensors::tensor::SafeTensors;
 use image::GenericImageView;
 use tokio::fs::{ self, File };
 use tokio::io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader };
+use regex::Regex;
+use regex::Error as RegexError;
+
+/// Formats the content of a text file by replacing multiple spaces with a single space.
+///
+/// # Arguments
+///
+/// * `content` - A string slice that holds the content of the text file
+///
+/// # Returns
+///
+/// Returns a `Result<String, regex::Error>` with the formatted content or an error if the regex could not be compiled.
+#[must_use = "Result must be used to format the content of a text file"]
+pub fn format_text_content(content: &str) -> Result<String, RegexError> {
+    let space_regex = Regex::new(r"\s+")?;
+    Ok(space_regex.replace_all(content, " ").into_owned())
+}
 
 /// Checks if a directory entry is the target directory.
 ///
@@ -46,7 +63,7 @@ pub fn is_hidden(entry: &DirEntry) -> bool {
 ///
 /// `true` if the entry's file name is ".git".
 #[must_use = "Determines if the directory entry is a git repository directory"]
-fn is_git_dir(entry: &DirEntry) -> bool {
+pub fn is_git_dir(entry: &DirEntry) -> bool {
     entry.file_name().to_string_lossy() == ".git"
 }
 

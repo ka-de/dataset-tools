@@ -1,3 +1,10 @@
+// remove-escape-characters\src\main.rs
+
+// This program removes escape characters from .txt files in a target directory and subdirectories.
+
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 use anyhow::Result;
 use dataset_tools::{ walk_directory, read_file_content, write_to_file };
 use std::path::Path;

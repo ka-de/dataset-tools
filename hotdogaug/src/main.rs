@@ -1,5 +1,10 @@
 // hotdogaug/src/main.rs
 
+// This program augments the training images with character segmentation and hue shifting.
+
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 use opencv::{ core, imgproc, imgcodecs, prelude::*, photo };
 use rand::Rng;
 use std::time::Instant;

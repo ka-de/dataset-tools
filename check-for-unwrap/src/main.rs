@@ -1,5 +1,7 @@
 // check-for-unwrap\src\main.rs
 
+// This program searches for .unwrap() calls in Rust source files and reports them.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

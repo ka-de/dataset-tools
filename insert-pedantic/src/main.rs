@@ -1,5 +1,8 @@
 // insert-pedantic\src\main.rs
 
+// This program inserts a pedantic warning comment in all .rs files in a target directory
+// and subdirectories.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

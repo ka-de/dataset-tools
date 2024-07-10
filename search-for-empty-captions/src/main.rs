@@ -1,5 +1,8 @@
 // search-for-empty-captions\src\main.rs
 
+// This program searches for image files that do not have a corresponding non-empty caption
+// file and reports the missing files.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

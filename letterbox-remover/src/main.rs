@@ -1,5 +1,10 @@
 // letterbox-remover/src/main.rs
 
+// This program removes letterboxes from images in a target directory and subdirectories.
+
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 use std::env;
 use std::path::Path;
 use walkdir::WalkDir;

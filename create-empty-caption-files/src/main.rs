@@ -1,5 +1,7 @@
 // create-empty-caption-files\src\main.rs
 
+// This program creates empty caption files for all image files in a directory.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

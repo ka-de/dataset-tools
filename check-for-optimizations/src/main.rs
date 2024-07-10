@@ -1,5 +1,8 @@
 // check-for-optimizations\src\main.rs
 
+// This program searches for Cargo.toml files that have `profile.dev.opt-level = 3` and
+// reports the files that do not.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

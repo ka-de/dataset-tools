@@ -1,5 +1,8 @@
 // check-for-pedantic\src\main.rs
 
+// This program searches for pedantic warnings in Rust source files and reports the files
+// that do not have them.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

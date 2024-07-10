@@ -1,5 +1,8 @@
 // search-for-superscript-numbers\src\main.rs
 
+// This program searches for superscript numbers in Markdown files and reports the
+// matches.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

@@ -2,6 +2,9 @@
 
 // This program removes the alpha channel from PNG files in a target directory and subdirectories.
 
+// Turn clippy into a real nerd
+#![warn(clippy::all, clippy::pedantic)]
+
 use std::path::PathBuf;
 use image::{ GenericImageView, ImageBuffer, Rgba };
 use dataset_tools::{ walk_directory, is_image_file };

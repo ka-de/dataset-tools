@@ -1,5 +1,7 @@
 // extract-metadata\src\main.rs
 
+// This program extracts metadata from .safetensors files in a target directory and subdirectories.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 

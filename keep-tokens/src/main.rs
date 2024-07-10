@@ -1,20 +1,20 @@
 // keep-tokens\src\main.rs
 
+// This code is designed to process a directory of .txt files.
+//
+// It defines a list of "keep tokens" that should be retained in the files.
+// For each .txt file found, it reads the content, splits it into tags
+// (separated by commas) and sentences (after the first comma-separated list).
+//
+// Finally, it writes a new version of the file with the
+// format: `keep_tokens ||| filtered_tags, sentences`.
+//
+// The code uses the `walkdir` crate to recursively traverse the directory and find
+// the .txt files, which simplifies the code compared to using the standard library's
+// `read_dir` function.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
-
-/// This code is designed to process a directory of .txt files.
-///
-/// It defines a list of "keep tokens" that should be retained in the files.
-/// For each .txt file found, it reads the content, splits it into tags
-/// (separated by commas) and sentences (after the first comma-separated list).
-///
-/// Finally, it writes a new version of the file with the
-/// format: `keep_tokens ||| filtered_tags, sentences`.
-///
-/// The code uses the `walkdir` crate to recursively traverse the directory and find
-/// the .txt files, which simplifies the code compared to using the standard library's
-/// `read_dir` function.
 
 use dataset_tools::{ walk_directory, read_file_content, split_content, write_to_file };
 use std::path::PathBuf;

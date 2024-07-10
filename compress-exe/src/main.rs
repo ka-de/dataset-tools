@@ -1,19 +1,19 @@
+// This program compresses all executable files in a specified directory (and its subdirectories) using UPX.
+//
+// The program takes one optional command-line argument: the path to the directory containing the executables.
+// If no argument is provided, it defaults to ".\\target\\x86_64-pc-windows-msvc\\release\\".
+//
+// It recursively iterates over each entry in the specified directory and its subdirectories.
+// If an entry is a file with a ".exe" extension, it attempts to compress it using the "upx" command
+// with the "--best" option for maximum compression.
+//
+// If the compression fails for any executable, it prints an error message to the standard error.
+//
+// This program returns an `std::io::Result<()>`. If an I/O error occurs at any point (such as if the directory
+// does not exist or is not readable), the program will return an `Err` variant containing the error.
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
-
-/// This program compresses all executable files in a specified directory (and its subdirectories) using UPX.
-///
-/// The program takes one optional command-line argument: the path to the directory containing the executables.
-/// If no argument is provided, it defaults to ".\\target\\x86_64-pc-windows-msvc\\release\\".
-///
-/// It recursively iterates over each entry in the specified directory and its subdirectories.
-/// If an entry is a file with a ".exe" extension, it attempts to compress it using the "upx" command
-/// with the "--best" option for maximum compression.
-///
-/// If the compression fails for any executable, it prints an error message to the standard error.
-///
-/// This program returns an `std::io::Result<()>`. If an I/O error occurs at any point (such as if the directory
-/// does not exist or is not readable), the program will return an `Err` variant containing the error.
 
 use std::env;
 use std::path::{ Path, PathBuf };
