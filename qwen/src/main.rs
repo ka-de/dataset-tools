@@ -26,7 +26,7 @@ enum Model {
 }
 
 impl Model {
-    fn forward(&mut self, xs: &Tensor, s: usize) -> candle::Result<Tensor> {
+    fn forward(&mut self, xs: &Tensor, s: usize) -> candle_core::Result<Tensor> {
         match self {
             Self::Moe(ref mut m) => m.forward(xs, s),
             Self::Base(ref mut m) => m.forward(xs, s),
@@ -86,7 +86,7 @@ impl TextGeneration {
         // Filter sentences
         let filtered_sentences: Vec<Cow<'_, str>> = sentence_regex
             .find_iter(text)
-            .map(|m| m.as_str())
+            .filter_map(|m| m.ok().map(|match_| match_.as_str()))
             .filter(|sentence| {
                 !sentence.to_lowercase().contains("text") &&
                     !sentence.to_lowercase().contains("hearts") &&
@@ -106,7 +106,7 @@ impl TextGeneration {
                     !sentence.contains("~") &&
                     !sentence.contains("*") &&
                     !sentence.contains("/") &&
-                    !special_chars_regex.is_match(sentence.trim()) &&
+                    !special_chars_regex.is_match(sentence.trim()).unwrap_or(false) &&
                     !sentence.trim().is_empty()
             })
             .map(|sentence| space_regex.replace_all(sentence, " "))
