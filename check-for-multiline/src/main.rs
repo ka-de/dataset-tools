@@ -1,11 +1,8 @@
-use anyhow::{ Context, Result };
-use dataset_tools::{ walk_directory, read_file_content };
+use dataset_tools::{ walk_directory, process_file, open_files_in_neovim };
 use std::env;
-use std::path::PathBuf;
-use tokio::process::Command;
+use std::process;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use std::process;
 
 #[tokio::main]
 async fn main() {
@@ -24,10 +21,16 @@ async fn main() {
     if
         let Err(e) = walk_directory(directory_path, "txt", |path| {
             let multi_line_files = Arc::clone(&multi_line_files);
-            async move { process_file(path, multi_line_files).await }
+            async move {
+                if !path.to_str().unwrap_or("").ends_with("-sample-prompts.txt") {
+                    process_file(path, multi_line_files).await
+                } else {
+                    Ok(())
+                }
+            }
         }).await
     {
-        eprintln!("Error: {e}");
+        eprintln!("Error: {}", e);
         process::exit(1);
     }
 
@@ -42,32 +45,4 @@ async fn main() {
     } else {
         println!("No files with multiple lines found.");
     }
-}
-
-async fn process_file(path: PathBuf, multi_line_files: Arc<Mutex<Vec<PathBuf>>>) -> Result<()> {
-    let content = read_file_content(path.to_str().context("Invalid path")?).await?;
-    let line_count = content.lines().count();
-
-    if line_count > 1 {
-        println!("File with multiple lines found: {}", path.display());
-        multi_line_files.lock().await.push(path);
-    }
-
-    Ok(())
-}
-
-async fn open_files_in_neovim(files: &[PathBuf]) -> Result<()> {
-    let file_paths: Vec<&str> = files
-        .iter()
-        .filter_map(|p| p.to_str())
-        .collect();
-
-    Command::new("nvim")
-        .args(&file_paths)
-        .spawn()
-        .context("Failed to spawn Neovim")?
-        .wait().await
-        .context("Failed to wait for Neovim")?;
-
-    Ok(())
 }

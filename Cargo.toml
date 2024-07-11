@@ -14,6 +14,7 @@ members = [
   "delete-url-files",
   "extract-metadata",
   "format-json",
+  "g",
   "hotdogaug",
   "insert-pedantic",
   "keep-tokens",
@@ -24,6 +25,7 @@ members = [
   "rplc",
   "search-for-empty-captions",
   "search-for-superscript-numbers",
+  "qwen",
 ]
 
 [package]
@@ -65,15 +67,31 @@ memmap2 = "0.9.4"
 anyhow = "1.0.86"
 image = "0.25.1"
 tokio = { version = "1.38.0", features = ["full"] }
-octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
 redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
+# 🎲
+rand = { version = "0.8.5", features = ["log", "small_rng"] }
+# 🐙
+octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
+# Candle
 candle-core = { version = "0.6.0", features = ["mkl"] }
+candle-transformers = { version = "0.6.0", features = ["mkl"] }
+candle-nn = { version = "0.6.0", features = ["mkl"] }
+# Candle Third-Party
 candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
+intel-mkl-src = { version = "0.8.1" }
+hf-hub = { version = "0", features = ["tokio"] }
+tokenizers = { version = "0", features = ["onig"] }
 
 ##################################################
 ### Examples
+
+### ML
+
+[[example]]
+name = "candle_einops_basic"
+path = "examples/candle-einops/basic.rs"
 
 ### Redis
 

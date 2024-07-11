@@ -4,7 +4,7 @@
 // src\lib.rs
 extern crate image;
 
-use std::path::{ Path, PathBuf };
+use std::{ sync::Arc, path::{ Path, PathBuf } };
 use log::{ info, warn };
 use walkdir::{ DirEntry, WalkDir };
 use serde_json::{ Value, Map };
@@ -12,9 +12,43 @@ use anyhow::{ Context, Result };
 use memmap2::Mmap;
 use safetensors::tensor::SafeTensors;
 use image::{ GenericImageView, ImageFormat };
-use tokio::{ task, fs::{ self, File }, io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader } };
+use tokio::{
+    sync::Mutex,
+    task,
+    fs::{ self, File },
+    io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader },
+    process::Command,
+};
 use regex::Regex;
 use regex::Error as RegexError;
+
+pub async fn process_file(path: PathBuf, multi_line_files: Arc<Mutex<Vec<PathBuf>>>) -> Result<()> {
+    let content = read_file_content(path.to_str().context("Invalid path")?).await?;
+    let line_count = content.lines().count();
+
+    if line_count > 1 {
+        println!("File with multiple lines found: {}", path.display());
+        multi_line_files.lock().await.push(path);
+    }
+
+    Ok(())
+}
+
+pub async fn open_files_in_neovim(files: &[PathBuf]) -> Result<()> {
+    let file_paths: Vec<&str> = files
+        .iter()
+        .filter_map(|p| p.to_str())
+        .collect();
+
+    Command::new("nvim")
+        .args(&file_paths)
+        .spawn()
+        .context("Failed to spawn Neovim")?
+        .wait().await
+        .context("Failed to wait for Neovim")?;
+
+    Ok(())
+}
 
 /// Formats the content of a text file by replacing multiple spaces with a single space.
 ///
