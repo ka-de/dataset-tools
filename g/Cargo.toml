@@ -1,0 +1,54 @@
+[package]
+name = "g"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
+tokio = { version = "1.38.0", features = ["full"] }
+redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }
+url = "2.5.2"
+getopts = "0.2.21"
+
+[[bin]]
+name = "g"
+path = "src/main.rs"
+
+[lib]
+name = "g"
+path = "src/lib.rs"
+
+##################################################
+### Examples
+
+### Redis
+
+[[example]]
+name = "redis_insert_awoo"
+path = "examples/redis/insert_awoo.rs"
+
+[[example]]
+name = "redis_dump"
+path = "examples/redis/dump.rs"
+
+[[example]]
+name = "redis_get_github_repos"
+path = "examples/redis/get_github_repos.rs"
+
+### Github
+
+[[example]]
+name = "github_gist"
+path = "examples/github/gist.rs"
+
+[[example]]
+name = "github_redis_user_repos_hash"
+path = "examples/github/redis_user_repos_hash.rs"
+
+[[example]]
+name = "github_get_repos"
+path = "examples/github/get_repos.rs"
+
+[[example]]
+name = "github_single_repo_stats"
+path = "examples/github/single_repo_stats.rs"

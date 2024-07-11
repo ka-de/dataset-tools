@@ -1,0 +1,9 @@
+[package]
+name = "check-for-multiline"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dataset-tools = { path = ".." }
+anyhow = "1.0.86"
+tokio = { version = "1.38.0", features = ["full"] }

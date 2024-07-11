@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "check-for-attributes",
   "check-for-cringe-summaries",
+  "check-for-multiline",
   "check-for-optimizations",
   "check-for-pedantic",
   "check-for-unwrap",
@@ -64,3 +65,44 @@ memmap2 = "0.9.4"
 anyhow = "1.0.86"
 image = "0.25.1"
 tokio = { version = "1.38.0", features = ["full"] }
+octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
+redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }
+url = "2.5.2"
+getopts = "0.2.21"
+candle-core = { version = "0.6.0", features = ["mkl"] }
+candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
+
+##################################################
+### Examples
+
+### Redis
+
+[[example]]
+name = "redis_insert_awoo"
+path = "examples/redis/insert_awoo.rs"
+
+[[example]]
+name = "redis_dump"
+path = "examples/redis/dump.rs"
+
+[[example]]
+name = "redis_get_github_repos"
+path = "examples/redis/get_github_repos.rs"
+
+### Github
+
+[[example]]
+name = "github_gist"
+path = "examples/github/gist.rs"
+
+[[example]]
+name = "github_redis_user_repos_hash"
+path = "examples/github/redis_user_repos_hash.rs"
+
+[[example]]
+name = "github_get_repos"
+path = "examples/github/get_repos.rs"
+
+[[example]]
+name = "github_single_repo_stats"
+path = "examples/github/single_repo_stats.rs"
