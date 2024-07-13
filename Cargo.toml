@@ -11,7 +11,6 @@ members = [
   "convert-caption-json-to-txt",
   "convert-e621-json-to-caption",
   "create-empty-caption-files",
-  "delete-url-files",
   "extract-metadata",
   "format-json",
   "g",
@@ -21,7 +20,9 @@ members = [
   "letterbox-remover",
   "remove-escape-characters",
   "remove-extra-file-extensions",
+  "remove-mac-artifacts",
   "remove-transparency",
+  "remove-url-files",
   "rplc",
   "search-for-empty-captions",
   "search-for-superscript-numbers",
@@ -64,7 +65,7 @@ crossterm = "0.27.0"
 serde_json = "1.0.120"
 safetensors = "0.4.3"
 memmap2 = "0.9.4"
-anyhow = "1.0.86"
+anyhow = { version = "1.0.86", features = ["backtrace"] }
 image = "0.25.1"
 tokio = { version = "1.38.0", features = ["full"] }
 redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }

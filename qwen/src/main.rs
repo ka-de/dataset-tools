@@ -1,23 +1,23 @@
 extern crate intel_mkl_src;
 
-use std::borrow::Cow;
 use fancy_regex::Regex;
+use rand::distributions::{Distribution, WeightedIndex};
 use rand::prelude::*;
-use rand::distributions::{ WeightedIndex, Distribution };
 use rand::rngs::StdRng;
 use rand::SeedableRng;
+use std::borrow::Cow;
 
-use anyhow::{ Error as E, Result };
+use anyhow::{Error as E, Result};
 use clap::Parser;
 
-use candle_transformers::models::qwen2::{ Config as ConfigBase, ModelForCausalLM as ModelBase };
-use candle_transformers::models::qwen2_moe::{ Config as ConfigMoe, Model as ModelMoe };
+use candle_transformers::models::qwen2::{Config as ConfigBase, ModelForCausalLM as ModelBase};
+use candle_transformers::models::qwen2_moe::{Config as ConfigMoe, Model as ModelMoe};
 
-use candle_core::{ DType, Device, Tensor };
+use candle_core::{DType, Device, Tensor};
 use candle_examples::token_output_stream::TokenOutputStream;
 use candle_nn::VarBuilder;
 use candle_transformers::generation::LogitsProcessor;
-use hf_hub::{ api::sync::Api, Repo, RepoType };
+use hf_hub::{api::sync::Api, Repo, RepoType};
 use tokenizers::Tokenizer;
 
 enum Model {
@@ -54,7 +54,7 @@ impl TextGeneration {
         top_p: Option<f64>,
         repeat_penalty: f32,
         repeat_last_n: usize,
-        device: &Device
+        device: &Device,
     ) -> Self {
         let logits_processor = LogitsProcessor::new(seed, temp, top_p);
         Self {
@@ -68,9 +68,9 @@ impl TextGeneration {
         }
     }
 
-    // Filters out sentences that contain "text", "hearts", "names",
-    // "says", "speech bubble", "word bubble", "~", "..." or "/" or asterisks
-    // or ".." or "!" or "patreon" or "twitter" or "logo" and only white spaces
+    // Filters out sentences that contain `text`, `hearts`, `names`,
+    // `says`, `speech bubble`, `word bubble`, `~`, `?`, `...` or `/` or `*`
+    // or ".." or "!" or "patreon" or `twitter` or `logo` and only white spaces
     // and filters out excessive use of white spaces and makes sure all sentences
     // are separated by a white space, it also filters out the contents inside parentheses
     // and also removes parentheses and also makes sure there is no extra
@@ -88,26 +88,29 @@ impl TextGeneration {
             .find_iter(text)
             .filter_map(|m| m.ok().map(|match_| match_.as_str()))
             .filter(|sentence| {
-                !sentence.to_lowercase().contains("text") &&
-                    !sentence.to_lowercase().contains("hearts") &&
-                    !sentence.to_lowercase().contains("name") &&
-                    !sentence.to_lowercase().contains("twitter") &&
-                    !sentence.to_lowercase().contains("patreon") &&
-                    !sentence.to_lowercase().contains("logo") &&
-                    !sentence.to_lowercase().contains("says") &&
-                    !sentence.to_lowercase().contains("word bubble") &&
-                    !sentence.to_lowercase().contains("speech bubble") &&
-                    !sentence.to_lowercase().contains("signature") &&
-                    !sentence.to_lowercase().contains("reads") &&
-                    !sentence.to_lowercase().contains("i'll") &&
-                    !sentence.contains("...") &&
-                    !sentence.contains("!") &&
-                    !sentence.contains("..") &&
-                    !sentence.contains("~") &&
-                    !sentence.contains("*") &&
-                    !sentence.contains("/") &&
-                    !special_chars_regex.is_match(sentence.trim()).unwrap_or(false) &&
-                    !sentence.trim().is_empty()
+                !sentence.to_lowercase().contains("text")
+                    && !sentence.to_lowercase().contains("hearts")
+                    && !sentence.to_lowercase().contains("name")
+                    && !sentence.to_lowercase().contains("twitter")
+                    && !sentence.to_lowercase().contains("patreon")
+                    && !sentence.to_lowercase().contains("logo")
+                    && !sentence.to_lowercase().contains("says")
+                    && !sentence.to_lowercase().contains("word bubble")
+                    && !sentence.to_lowercase().contains("speech bubble")
+                    && !sentence.to_lowercase().contains("signature")
+                    && !sentence.to_lowercase().contains("reads")
+                    && !sentence.to_lowercase().contains("i'll")
+                    && !sentence.contains("...")
+                    && !sentence.contains("!")
+                    && !sentence.contains("..")
+                    && !sentence.contains("~")
+                    && !sentence.contains("?")
+                    && !sentence.contains("*")
+                    && !sentence.contains("/")
+                    && !special_chars_regex
+                        .is_match(sentence.trim())
+                        .unwrap_or(false)
+                    && !sentence.trim().is_empty()
             })
             .map(|sentence| space_regex.replace_all(sentence, " "))
             .collect::<Vec<_>>();
@@ -123,9 +126,14 @@ impl TextGeneration {
         //Regex::new(r"\n+").unwrap().replace_all(&joined_text, "\n").into_owned()
 
         // Remove newlines and fix spacing after punctuation and filter out parentheses and ".
-        let mut result = filtered_sentences.join("").replace('\n', "").replace('"', "");
+        let mut result = filtered_sentences
+            .join("")
+            .replace('\n', "")
+            .replace('"', "");
         result = fix_spacing_regex.replace_all(&result, "$1 $2").to_string();
-        result = parentheses_content_regex.replace_all(&result, "").to_string();
+        result = parentheses_content_regex
+            .replace_all(&result, "")
+            .to_string();
         result = parentheses_char_regex.replace_all(&result, "").to_string();
 
         // Ensure space after special characters
@@ -176,7 +184,8 @@ impl TextGeneration {
 
         // Print the tokens.
         // This is only for debugging purposes.
-        let mut tokens = self.tokenizer
+        let mut tokens = self
+            .tokenizer
             .tokenizer()
             .encode(modified_prompt, true)
             .map_err(E::msg)?
@@ -192,27 +201,8 @@ impl TextGeneration {
 
         // Common Words
         let common_words = vec![
-            "and",
-            "is",
-            "are",
-            "the",
-            "for",
-            "a",
-            "an",
-            "in",
-            "on",
-            "to",
-            "of",
-            "it",
-            "by",
-            "with",
-            "as",
-            "that",
-            "this",
-            "but",
-            "or",
-            "at",
-            "from"
+            "and", "is", "are", "the", "for", "a", "an", "in", "on", "to", "of", "it", "by",
+            "with", "as", "that", "this", "but", "or", "at", "from",
         ];
 
         // Tokenize the common words
@@ -249,7 +239,7 @@ impl TextGeneration {
                 candle_transformers::utils::apply_repeat_penalty(
                     &logits,
                     self.repeat_penalty,
-                    &penalize_tokens
+                    &penalize_tokens,
                 )?
             };
 
@@ -288,7 +278,7 @@ impl TextGeneration {
                 tokens.push(next_token);
             }
 
-			*/
+            */
             tokens.push(next_token);
 
             generated_tokens += 1;
@@ -310,11 +300,11 @@ impl TextGeneration {
         std::io::stdout().flush()?;
 
         /* ⚠️ TODO: Replace this with env_logger.
-		println!(
+        println!(
             "\n{generated_tokens} tokens generated ({:.2} token/s)",
             (generated_tokens as f64) / dt.as_secs_f64()
         );
-		*/
+        */
 
         // Apply the filter to the generated text
         let filtered_text = self.filter_sentences(&generated_text);
@@ -463,33 +453,39 @@ fn main() -> Result<()> {
             format!("{version}{size}")
         }
     };
-    let repo = api.repo(Repo::with_revision(model_id, RepoType::Model, args.revision));
+    let repo = api.repo(Repo::with_revision(
+        model_id,
+        RepoType::Model,
+        args.revision,
+    ));
     let tokenizer_filename = match args.tokenizer_file {
         Some(file) => std::path::PathBuf::from(file),
         None => repo.get("tokenizer.json")?,
     };
     let filenames = match args.weight_files {
-        Some(files) => files.split(',').map(std::path::PathBuf::from).collect::<Vec<_>>(),
-        None =>
-            match args.model {
-                //| WhichModel::Prompt2tagQwen2_0_5bV0_1
-                | WhichModel::Tag2promptQwen2_0_5bV0_1
-                | WhichModel::W0_5b
-                | WhichModel::W2_0_5b
-                | WhichModel::W2_1_5b
-                | WhichModel::W1_8b => {
-                    vec![repo.get("model.safetensors")?]
-                }
-                | WhichModel::W4b
-                | WhichModel::W7b
-                | WhichModel::W2_7b
-                | WhichModel::W14b
-                | WhichModel::W72b
-                | WhichModel::W2_72b
-                | WhichModel::MoeA27b => {
-                    candle_examples::hub_load_safetensors(&repo, "model.safetensors.index.json")?
-                }
+        Some(files) => files
+            .split(',')
+            .map(std::path::PathBuf::from)
+            .collect::<Vec<_>>(),
+        None => match args.model {
+            //| WhichModel::Prompt2tagQwen2_0_5bV0_1
+            WhichModel::Tag2promptQwen2_0_5bV0_1
+            | WhichModel::W0_5b
+            | WhichModel::W2_0_5b
+            | WhichModel::W2_1_5b
+            | WhichModel::W1_8b => {
+                vec![repo.get("model.safetensors")?]
             }
+            WhichModel::W4b
+            | WhichModel::W7b
+            | WhichModel::W2_7b
+            | WhichModel::W14b
+            | WhichModel::W72b
+            | WhichModel::W2_72b
+            | WhichModel::MoeA27b => {
+                candle_examples::hub_load_safetensors(&repo, "model.safetensors.index.json")?
+            }
+        },
     };
     // ⚠️ TODO: Replace this with env_logger.
     //println!("retrieved the files in {:?}", start.elapsed());
@@ -498,7 +494,11 @@ fn main() -> Result<()> {
     let start = std::time::Instant::now();
     let config_file = repo.get("config.json")?;
     let device = candle_examples::device(args.cpu)?;
-    let dtype = if device.is_cuda() { DType::BF16 } else { DType::F32 };
+    let dtype = if device.is_cuda() {
+        DType::BF16
+    } else {
+        DType::F32
+    };
     let vb = unsafe { VarBuilder::from_mmaped_safetensors(&filenames, dtype, &device)? };
     let model = match args.model {
         WhichModel::MoeA27b => {
@@ -522,7 +522,7 @@ fn main() -> Result<()> {
         args.top_p,
         args.repeat_penalty,
         args.repeat_last_n,
-        &device
+        &device,
     );
 
     pipeline.run(&args.prompt, args.sample_len, args.model)?;

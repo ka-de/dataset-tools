@@ -844,15 +844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "delete-url-files"
-version = "0.1.0"
-dependencies = [
- "dataset-tools",
- "tokio",
- "walkdir",
-]
-
-[[package]]
 name = "deranged"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2994,6 +2985,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "remove-mac-artifacts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dataset-tools",
+ "tokio",
+ "walkdir",
+]
+
+[[package]]
 name = "remove-transparency"
 version = "0.1.0"
 dependencies = [
@@ -3002,6 +3003,15 @@ dependencies = [
  "dataset-tools",
  "image",
  "tokio",
+]
+
+[[package]]
+name = "remove-url-files"
+version = "0.1.0"
+dependencies = [
+ "dataset-tools",
+ "tokio",
+ "walkdir",
 ]
 
 [[package]]
