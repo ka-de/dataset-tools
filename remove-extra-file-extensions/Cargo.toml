@@ -7,4 +7,4 @@ edition = "2021"
 dataset-tools = { path = ".." }
 walkdir = "2.5.0"
 tokio = { version = "1.38.0", features = ["full"] }
-anyhow = "1.0.86"
+anyhow = { version = "1.0.86", features = ["backtrace"] }

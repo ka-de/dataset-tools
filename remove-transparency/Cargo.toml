@@ -8,4 +8,4 @@ dataset-tools = { path = ".." }
 tokio = { version = "1.28", features = ["full"] }
 image = "0.25.1"
 anyhow = "1.0"
-clap = { version = "4.3", features = ["derive"] }
+clap = { version = "4.5.9", features = ["derive"] }

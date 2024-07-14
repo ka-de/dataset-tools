@@ -9,4 +9,4 @@ walkdir = "2.5.0"
 regex = "1.10.5"
 tokio = { version = "1.38.0", features = ["full"] }
 crossterm = "0.27.0"
-anyhow = "1.0.86"
+anyhow = { version = "1.0.86", features = ["backtrace"] }

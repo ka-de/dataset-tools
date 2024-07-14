@@ -992,6 +992,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "check"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "crossterm",
+ "dataset-tools",
+ "regex",
+ "tokio",
+]
+
+[[package]]
 name = "check-for-attributes"
 version = "0.1.0"
 dependencies = [

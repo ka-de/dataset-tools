@@ -7,7 +7,7 @@ edition = "2021"
 dataset-tools = { path = ".." }
 fancy-regex = "0.13.0"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
-clap = { version = "4.2.4", features = ["derive"] }
+clap = { version = "4.5.9", features = ["derive"] }
 # 🎲
 rand = { version = "0.8.5" }
 # Candle
@@ -23,4 +23,4 @@ tokenizers = { version = "0", features = ["onig"] }
 tracing = "0.1.37"
 tracing-chrome = "0.7.1"
 tracing-subscriber = "0.3.7"
-serde_json = "1.0.99"
+serde_json = "1.0.120"

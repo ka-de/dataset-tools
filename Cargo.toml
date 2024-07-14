@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+  "check",
   "check-for-attributes",
   "check-for-cringe-summaries",
   "check-for-multiline",
@@ -61,7 +62,7 @@ strip = true
 # Command Line Argument Parser for Rust
 log = "0.4.22"
 env_logger = "0.11.3"
-clap = { version = "4.5.8", features = ["derive"] }
+clap = { version = "4.5.9", features = ["derive"] }
 regex = "1.10.5"
 walkdir = "2.5.0"
 crossterm = "0.27.0"

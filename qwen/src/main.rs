@@ -106,6 +106,7 @@ impl TextGeneration {
                     && !sentence.contains("~")
                     && !sentence.contains("?")
                     && !sentence.contains("*")
+                    && !sentence.contains("\"")
                     && !sentence.contains("/")
                     && !special_chars_regex
                         .is_match(sentence.trim())
