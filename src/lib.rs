@@ -262,6 +262,27 @@ pub async fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
     Ok(Value::Object(kv))
 }
 
+/// Opens a SafeTensors file and returns the SafeTensors object.
+///
+/// # Arguments
+///
+/// * `path` - A reference to the Path of the SafeTensors file.
+///
+/// # Returns
+///
+/// Returns a Result containing the SafeTensors object.
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be opened, mapped, or deserialized.
+#[must_use = "This function returns a Result that must be used"]
+pub async fn open_safetensors(path: &Path) -> Result<SafeTensors<Mmap>> {
+    let file = File::open(path).await.context("Failed to open SafeTensors file")?;
+    let std_file = file.into_std().await;
+    let mmap = unsafe { Mmap::map(&std_file).context("Failed to create memory map")? };
+    SafeTensors::deserialize(&mmap).context("Failed to deserialize SafeTensors")
+}
+
 /// Processes a `SafeTensors` file and extracts its JSON metadata.
 ///
 /// # Errors
@@ -269,19 +290,27 @@ pub async fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
 /// Returns an error if the file cannot be opened, read, or processed.
 #[must_use = "Processes a SafeTensors file and requires handling of the result to ensure metadata is extracted"]
 pub async fn process_safetensors_file(path: &Path) -> Result<()> {
-    let file = File::open(path).await?;
-    let mmap = unsafe { Mmap::map(&file)? };
+    let tensors = open_safetensors(path).await?;
+    let metadata = tensors.metadata();
 
-    match get_json_metadata(&mmap).await {
-        Ok(json) => {
-            let pretty_json = serde_json::to_string_pretty(&json)?;
-            info!("{pretty_json}");
-            write_to_file(&path.with_extension("json"), &pretty_json).await?;
-        }
-        Err(e) => {
-            warn!("No metadata found for file: {path:?}. Error: {e}");
-        }
+    let mut kv = serde_json::Map::with_capacity(metadata.len());
+    for (key, value) in metadata {
+        let json_value = serde_json::from_str(value).unwrap_or_else(|_| {
+            match value.as_str() {
+                "True" => serde_json::Value::Bool(true),
+                "False" => serde_json::Value::Bool(false),
+                "None" => serde_json::Value::Null,
+                s => serde_json::Value::String(s.into()),
+            }
+        });
+        kv.insert(key.clone(), json_value);
     }
+
+    let json = serde_json::Value::Object(kv);
+    let pretty_json = serde_json::to_string_pretty(&json)?;
+    info!("{pretty_json}");
+    write_to_file(&path.with_extension("json"), &pretty_json).await?;
+
     Ok(())
 }
 

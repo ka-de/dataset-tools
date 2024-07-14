@@ -79,9 +79,15 @@ rand = { version = "0.8.5", features = ["log", "small_rng"] }
 # 🐙
 octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
 # Candle
-candle-core = { version = "0.6.0", features = ["mkl"] }
-candle-transformers = { version = "0.6.0", features = ["mkl"] }
-candle-nn = { version = "0.6.0", features = ["mkl"] }
+candle-core = { git = "https://github.com/huggingface/candle", features = [
+  "mkl",
+] }
+candle-transformers = { git = "https://github.com/huggingface/candle", features = [
+  "mkl",
+] }
+candle-nn = { git = "https://github.com/huggingface/candle", features = [
+  "mkl",
+] }
 # Candle Third-Party
 candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
 intel-mkl-src = { version = "0.8.1" }
