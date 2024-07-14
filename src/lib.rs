@@ -22,7 +22,26 @@ use tokio::{
 use regex::Regex;
 use regex::Error as RegexError;
 
-pub async fn process_file(path: PathBuf, multi_line_files: Arc<Mutex<Vec<PathBuf>>>) -> Result<()> {
+/// Processes a file and adds it to a list if it contains multiple lines.
+///
+/// # Arguments
+///
+/// * `path` - A `PathBuf` that holds the path to the file.
+/// * `multi_line_files` - An `Arc<Mutex<Vec<PathBuf>>>` that holds the list of files with multiple lines.
+///
+/// # Returns
+///
+/// Returns a `Result<()>` indicating the success or failure of the operation.
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// * The path is invalid.
+/// * The file cannot be read.
+pub async fn check_file_for_multiple_lines(
+    path: PathBuf,
+    multi_line_files: Arc<Mutex<Vec<PathBuf>>>
+) -> Result<()> {
     let content = read_file_content(path.to_str().context("Invalid path")?).await?;
     let line_count = content.lines().count();
 
@@ -34,6 +53,21 @@ pub async fn process_file(path: PathBuf, multi_line_files: Arc<Mutex<Vec<PathBuf
     Ok(())
 }
 
+/// Opens a list of files in Neovim.
+///
+/// # Arguments
+///
+/// * `files` - A slice of `PathBuf` that holds the paths to the files.
+///
+/// # Returns
+///
+/// Returns a `Result<()>` indicating the success or failure of the operation.
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// * Neovim cannot be spawned.
+/// * The process cannot wait for Neovim.
 pub async fn open_files_in_neovim(files: &[PathBuf]) -> Result<()> {
     let file_paths: Vec<&str> = files
         .iter()
@@ -54,11 +88,16 @@ pub async fn open_files_in_neovim(files: &[PathBuf]) -> Result<()> {
 ///
 /// # Arguments
 ///
-/// * `content` - A string slice that holds the content of the text file
+/// * `content` - A string slice that holds the content of the text file.
 ///
 /// # Returns
 ///
 /// Returns a `Result<String, regex::Error>` with the formatted content or an error if the regex could not be compiled.
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// * The regex cannot be compiled.
 #[must_use = "Result must be used to format the content of a text file"]
 pub fn format_text_content(content: &str) -> Result<String, RegexError> {
     let space_regex = Regex::new(r"\s+")?;

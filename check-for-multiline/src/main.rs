@@ -1,4 +1,4 @@
-use dataset_tools::{ walk_directory, process_file, open_files_in_neovim };
+use dataset_tools::{ walk_directory, check_file_for_multiple_lines, open_files_in_neovim };
 use std::env;
 use std::process;
 use std::sync::Arc;
@@ -23,7 +23,7 @@ async fn main() {
             let multi_line_files = Arc::clone(&multi_line_files);
             async move {
                 if !path.to_str().unwrap_or("").ends_with("-sample-prompts.txt") {
-                    process_file(path, multi_line_files).await
+                    check_file_for_multiple_lines(path, multi_line_files).await
                 } else {
                     Ok(())
                 }
