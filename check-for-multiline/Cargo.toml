@@ -1,9 +1,0 @@
-[package]
-name = "check-for-multiline"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-dataset-tools = { path = ".." }
-anyhow = { version = "1.0.86", features = ["backtrace"] }
-tokio = { version = "1.38.0", features = ["full"] }

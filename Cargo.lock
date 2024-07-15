@@ -1001,17 +1001,7 @@ dependencies = [
  "dataset-tools",
  "regex",
  "tokio",
-]
-
-[[package]]
-name = "check-for-attributes"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "dataset-tools",
- "regex",
- "tokio",
- "walkdir",
+ "toml",
 ]
 
 [[package]]
@@ -1021,25 +1011,6 @@ dependencies = [
  "dataset-tools",
  "tokio",
  "walkdir",
-]
-
-[[package]]
-name = "check-for-multiline"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dataset-tools",
- "tokio",
-]
-
-[[package]]
-name = "check-for-optimizations"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dataset-tools",
- "tokio",
- "toml",
 ]
 
 [[package]]

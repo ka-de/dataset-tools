@@ -2,10 +2,7 @@
 resolver = "2"
 members = [
   "check",
-  "check-for-attributes",
   "check-for-cringe-summaries",
-  "check-for-multiline",
-  "check-for-optimizations",
   "check-for-pedantic",
   "check-for-unwrap",
   "compress-exe",

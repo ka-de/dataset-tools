@@ -1,3 +1,10 @@
+// src/lib.rs
+
+// Dataset Tools
+//
+// dataset_tools is a collection of building blocks for useful tools for working with datasets, code,
+// images and all kinds of other useful things!
+
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
