@@ -4,7 +4,7 @@
 // actually on our keyboards in .txt files in a target directory and subdirectories.
 
 use std::path::Path;
-use anyhow::Result;
+use anyhow::{ Result, Context };
 use dataset_tools::{ walk_directory, read_file_content, write_to_file };
 use std::env;
 
@@ -30,7 +30,7 @@ async fn process_text_file(path: std::path::PathBuf) -> Result<()> {
     println!("Processing file: {}", path.display());
 
     // Read the content of the file
-    let content = read_file_content(path.to_str().unwrap()).await?;
+    let content = read_file_content(path.to_str().context("Invalid path")?).await?;
 
     // Replace the characters
     let processed_content = content.replace('’', "'").replace('“', "\"").replace('”', "\"");
