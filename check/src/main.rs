@@ -14,6 +14,7 @@ use dataset_tools::{
     check_file_for_multiple_lines,
     open_files_in_neovim,
     read_file_content,
+    process_rust_file,
 };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
@@ -43,6 +44,10 @@ enum Commands {
         #[arg(default_value = ".")]
         directory: String,
     },
+    Pedantic {
+        #[arg(default_value = ".")]
+        directory: String,
+    },
 }
 
 // List of built-in attributes in Rust
@@ -69,6 +74,34 @@ async fn main() -> Result<()> {
         Commands::Attributes { directory } => check_attributes(directory).await?,
         Commands::Multiline { directory } => check_multiline(directory).await?,
         Commands::Optimizations { directory } => check_optimizations(directory).await?,
+        Commands::Pedantic { directory } => check_pedantic(directory).await?,
+    }
+
+    Ok(())
+}
+
+async fn check_pedantic(directory: &str) -> Result<()> {
+    let files_without_warning = Arc::new(Mutex::new(Vec::new()));
+
+    walk_rust_files(directory, |path| {
+        let files_without_warning = Arc::clone(&files_without_warning);
+        async move {
+            let mut guard = files_without_warning.lock().await;
+            process_rust_file(&path, &mut guard).await
+        }
+    })
+    .await
+    .context("Failed to walk through Rust files")?;
+
+    let files_without_warning = files_without_warning.lock().await;
+    if !files_without_warning.is_empty() {
+        println!("The following files are missing the required warning:");
+        for file in files_without_warning.iter() {
+            println!("{}", file.display());
+        }
+        std::process::exit(1);
+    } else {
+        println!("All Rust files contain the required warning.");
     }
 
     Ok(())
