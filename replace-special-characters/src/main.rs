@@ -1,3 +1,8 @@
+// replace-special-characters\src\main.rs
+
+// This program replaces some special characters LLMs like to spit out with versions that are
+// actually on our keyboards in .txt files in a target directory and subdirectories.
+
 use std::path::Path;
 use anyhow::Result;
 use dataset_tools::{ walk_directory, read_file_content, write_to_file };
