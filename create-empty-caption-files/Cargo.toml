@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 dataset-tools = { path = ".." }
 walkdir = "2.5.0"
-tokio = { version = "1.38.0", features = ["full"] }
+tokio = { version = "1.38.1", features = ["full"] }
 anyhow = { version = "1.0.86", features = ["backtrace"] }

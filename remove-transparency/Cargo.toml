@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 dataset-tools = { path = ".." }
-tokio = { version = "1.28", features = ["full"] }
-image = "0.25.1"
-anyhow = "1.0"
+tokio = { version = "1.38.1", features = ["full"] }
+image = "0.25.2"
+anyhow = "1.0.86"
 clap = { version = "4.5.9", features = ["derive"] }

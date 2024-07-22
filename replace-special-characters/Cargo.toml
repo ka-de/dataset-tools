@@ -1,5 +1,5 @@
 [package]
-name = "list-lora-blocks"
+name = "replace-special-characters"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,5 +8,3 @@ dataset-tools = { path = ".." }
 walkdir = "2.5.0"
 tokio = { version = "1.38.1", features = ["full"] }
 anyhow = { version = "1.0.86", features = ["backtrace"] }
-safetensors = "0.4.3"
-memmap2 = "0.9.4"

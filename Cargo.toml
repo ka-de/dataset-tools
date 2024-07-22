@@ -23,6 +23,7 @@ members = [
   "remove-mac-artifacts",
   "remove-transparency",
   "remove-url-files",
+  "replace-special-characters",
   "rplc",
   "sample-browser",
   "search-for-empty-captions",
@@ -67,8 +68,8 @@ serde_json = "1.0.120"
 safetensors = "0.4.3"
 memmap2 = "0.9.4"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
-image = "0.25.1"
-tokio = { version = "1.38.0", features = ["full"] }
+image = "0.25.2"
+tokio = { version = "1.38.1", features = ["full"] }
 redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
@@ -83,8 +84,8 @@ candle-nn = { version = "0.6.0", features = ["mkl"] }
 # Candle Third-Party
 candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
 intel-mkl-src = { version = "0.8.1" }
-hf-hub = { version = "0", features = ["tokio"] }
-tokenizers = { version = "0", features = ["onig"] }
+hf-hub = { version = "0.3.2", features = ["tokio"] }
+tokenizers = { version = "0.19.1", features = ["onig"] }
 
 ##################################################
 ### Examples

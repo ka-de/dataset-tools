@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
-tokio = { version = "1.38.0", features = ["full"] }
+tokio = { version = "1.38.1", features = ["full"] }
 redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
