@@ -29,6 +29,8 @@ async fn main() -> Result<()> {
 
     println!("Processing directory: {}", directory.display());
 
+    walk_directory(&directory, "webp", |path| create_caption_file(path.to_path_buf())).await?;
+    walk_directory(&directory, "jxl", |path| create_caption_file(path.to_path_buf())).await?;
     walk_directory(&directory, "jpg", |path| create_caption_file(path.to_path_buf())).await?;
     walk_directory(&directory, "jpeg", |path| create_caption_file(path.to_path_buf())).await?;
     walk_directory(&directory, "png", |path| create_caption_file(path.to_path_buf())).await?;

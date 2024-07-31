@@ -1,4 +1,4 @@
-use candle_core::{ Device, Result, Tensor };
+use candle_core::{Device, Result, Tensor};
 use candle_einops::einops;
 
 // Creates a 3D tensor with random values, reshapes it by rearranging its dimensions,
@@ -140,9 +140,9 @@ fn decomposition_transpose_composition() -> Result<()> {
 }
 
 fn main() {
-    //let _ = transpose();
-    //let _ = composition();
-    //let _ = transpose_and_composition();
-    //let _ = decomposition();
-    //let _ = decomposition_transpose_composition();
+    let _ = transpose();
+    let _ = composition();
+    let _ = transpose_and_composition();
+    let _ = decomposition();
+    let _ = decomposition_transpose_composition();
 }

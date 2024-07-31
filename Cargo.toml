@@ -19,10 +19,11 @@ members = [
   "list-lora-blocks",
   "remove-escape-characters",
   "remove-extra-file-extensions",
-  "remove-lora-blocks",
+  #"remove-lora-blocks",
   "remove-mac-artifacts",
   "remove-transparency",
   "remove-url-files",
+  "rename-to-md5",
   "replace-special-characters",
   "rplc",
   "sample-browser",
@@ -58,19 +59,20 @@ strip = true
 
 [dependencies]
 # Command Line Argument Parser for Rust
+md5 = "0.7.0"
 log = "0.4.22"
-env_logger = "0.11.3"
-clap = { version = "4.5.9", features = ["derive"] }
+env_logger = "0.11.5"
+clap = { version = "4.5.11", features = ["derive"] }
 regex = "1.10.5"
 walkdir = "2.5.0"
 crossterm = "0.27.0"
-serde_json = "1.0.120"
+serde_json = "1.0.121"
 safetensors = "0.4.3"
 memmap2 = "0.9.4"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 image = "0.25.2"
-tokio = { version = "1.38.1", features = ["full"] }
-redis = { version = "0.25.4", features = ["aio", "tokio-comp"] }
+tokio = { version = "1.39.2", features = ["full"] }
+redis = { version = "0.26.0", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
 # 🎲
