@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 dataset-tools = { path = ".." }
-opencv = "0.92.0"
+opencv = "0.92.1"
 rand = "0.8.5"
 walkdir = "2.5.0"

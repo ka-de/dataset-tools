@@ -7,8 +7,8 @@ edition = "2021"
 [dependencies]
 dataset-tools = { path = ".." }
 regex = "1.10.5"
-crossterm = "0.27.0"
-tokio = { version = "1.38.1", features = ["full"] }
-clap = { version = "4.5.9", features = ["derive"] }
+crossterm = "0.28.0"
+tokio = { version = "1.39.2", features = ["full"] }
+clap = { version = "4.5.12", features = ["derive"] }
 anyhow = { version = "1.0.86", features = ["backtrace"] }
-toml = "0.8.15"
+toml = "0.8.18"

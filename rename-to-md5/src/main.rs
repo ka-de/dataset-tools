@@ -2,7 +2,7 @@ use std::path::{ Path, PathBuf };
 use std::collections::HashMap;
 use tokio::fs;
 use anyhow::{ Context, Result, anyhow };
-use md5::{ Md5, Digest };
+use md5::Md5;
 use dataset_tools::{ walk_directory, is_image_file };
 use std::env;
 

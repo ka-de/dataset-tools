@@ -7,4 +7,4 @@ edition = "2021"
 dataset-tools = { path = ".." }
 image = "0.25.2"
 walkdir = "2.5.0"
-tokio = { version = "1.38.1", features = ["full"] }
+tokio = { version = "1.39.2", features = ["full"] }
