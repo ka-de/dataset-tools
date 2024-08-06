@@ -79,23 +79,23 @@ rand = { version = "0.8.5", features = ["log", "small_rng"] }
 # 🐙
 octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
 # Candle
-candle-core = { version = "0.6.0", features = ["mkl"] }
-candle-transformers = { version = "0.6.0", features = ["mkl"] }
-candle-nn = { version = "0.6.0", features = ["mkl"] }
+#candle-core = { version = "0.6.0", features = ["mkl"] }
+#candle-transformers = { version = "0.6.0", features = ["mkl"] }
+#candle-nn = { version = "0.6.0", features = ["mkl"] }
 # Candle Third-Party
-candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
-intel-mkl-src = { version = "0.8.1" }
-hf-hub = { version = "0.3.2", features = ["tokio"] }
-tokenizers = { version = "0.19.1", features = ["onig"] }
+#candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
+#intel-mkl-src = { version = "0.8.1" }
+#hf-hub = { version = "0.3.2", features = ["tokio"] }
+#tokenizers = { version = "0.19.1", features = ["onig"] }
 
 ##################################################
 ### Examples
 
 ### ML
 
-[[example]]
-name = "candle_einops_basic"
-path = "examples/candle-einops/basic.rs"
+#[[example]]
+#name = "candle_einops_basic"
+#path = "examples/candle-einops/basic.rs"
 
 ### Redis
 
