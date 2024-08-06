@@ -29,7 +29,6 @@ members = [
   "sample-browser",
   "search-for-empty-captions",
   "search-for-superscript-numbers",
-  "qwen",
 ]
 
 [package]
