@@ -6,7 +6,7 @@
 #![warn(clippy::all, clippy::pedantic)]
 
 use dataset_tools::{ walk_directory, write_to_file };
-use std::path::{ Path, PathBuf };
+use std::path::PathBuf;
 use anyhow::Result;
 use std::env;
 
