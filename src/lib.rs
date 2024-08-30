@@ -2,13 +2,49 @@
 
 // Dataset Tools
 //
-// dataset_tools is a collection of building blocks for useful tools for working with datasets, code,
-// images and all kinds of other useful things!
+// `dataset_tools` is a collection of building blocks for useful tools for working with various types of data,
+// such as datasets, code, images, and other file formats. It provides a set of functions and utilities
+// to help with common data processing tasks, including:
+//
+// - Checking files for multiple lines and opening them in Neovim
+// - Formatting text content by replacing multiple spaces with a single space
+// - Detecting and skipping hidden directories, Git directories, and build output directories during directory walks
+// - Processing Rust files and checking for required compiler warnings
+// - Reading and writing JSON files, including formatting and extracting metadata from SafeTensors files
+// - Determining if a file is an image and checking if a caption file exists and is not empty
+// - Renaming image files to remove the extension
+// - Converting JSON files to caption files
+// - Deleting files with a specific extension in a directory and its subdirectories
+// - Removing letterboxing from image files
+//
+// This library is designed to be a useful set of tools for working with a variety of data types and formats,
+// simplifying common data processing tasks and helping to maintain code quality and consistency.
+//
+// # Example Usage
+//
+// ```rust
+// use dataset_tools::{
+//     walk_rust_files, process_rust_file, format_json_file, process_safetensors_file,
+// };
+//
+// #[tokio::main]
+// async fn main() -> anyhow::Result<()> {
+//     // Process Rust files in a directory, checking for the required warning
+//     walk_rust_files("src", process_rust_file).await?;
+//
+//     // Format a JSON file
+//     format_json_file("path/to/file.json").await?;
+//
+//     // Process a SafeTensors file and extract its JSON metadata
+//     process_safetensors_file("path/to/file.safetensors").await?;
+//
+//     Ok(())
+// }
+// ```
 
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-// src\lib.rs
 extern crate image;
 
 use std::{ sync::Arc, path::{ Path, PathBuf } };
@@ -22,7 +58,7 @@ use image::{ GenericImageView, ImageFormat };
 use tokio::{
     sync::Mutex,
     task,
-    fs::{ self, File },
+    fs::{ self, File, write },
     io::{ self, AsyncBufReadExt, AsyncWriteExt, BufReader },
     process::Command,
 };
@@ -285,10 +321,12 @@ pub async fn walk_directory<F, Fut>(
 ///
 /// Returns an error if the metadata cannot be read or parsed.
 #[must_use = "Retrieves JSON metadata and requires handling of the result to ensure metadata is obtained"]
-pub async fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
-    let buffer_vec = buffer.to_vec(); // Clone the buffer data
+pub async fn get_json_metadata(path: &Path) -> Result<Value> {
+    let file = File::open(path).await?;
+    let mmap = unsafe { Mmap::map(&file)? };
+
     let (_header_size, metadata) = task
-        ::spawn_blocking(move || { SafeTensors::read_metadata(&buffer_vec) }).await
+        ::spawn_blocking(move || { SafeTensors::read_metadata(&mmap) }).await
         .context("Cannot read metadata")??;
 
     let metadata = metadata.metadata().as_ref().context("No metadata available")?;
@@ -315,19 +353,10 @@ pub async fn get_json_metadata(buffer: &[u8]) -> Result<Value> {
 /// Returns an error if the file cannot be opened, read, or processed.
 #[must_use = "Processes a SafeTensors file and requires handling of the result to ensure metadata is extracted"]
 pub async fn process_safetensors_file(path: &Path) -> Result<()> {
-    let file = File::open(path).await?;
-    let mmap = unsafe { Mmap::map(&file)? };
-
-    match get_json_metadata(&mmap).await {
-        Ok(json) => {
-            let pretty_json = serde_json::to_string_pretty(&json)?;
-            info!("{pretty_json}");
-            write_to_file(&path.with_extension("json"), &pretty_json).await?;
-        }
-        Err(e) => {
-            warn!("No metadata found for file: {path:?}. Error: {e}");
-        }
-    }
+    let json = get_json_metadata(path).await?;
+    let pretty_json = serde_json::to_string_pretty(&json)?;
+    info!("{pretty_json}");
+    write(path.with_extension("json"), pretty_json).await?;
     Ok(())
 }
 

@@ -907,7 +907,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "crossterm 0.28.1",
+ "crossterm",
  "dataset-tools",
  "regex",
  "tokio",
@@ -938,7 +938,7 @@ dependencies = [
 name = "check-for-unwrap"
 version = "0.1.0"
 dependencies = [
- "crossterm 0.27.0",
+ "crossterm",
  "dataset-tools",
  "regex",
  "tokio",
@@ -981,9 +981,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.13"
+version = "4.5.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fbb260a053428790f3de475e304ff84cdbc4face759ea7a3e64c1edd938a7fc"
+checksum = "ed6719fffa43d0d87e5fd8caeab59be1554fb028cd30edc88fc4369b17971019"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -991,9 +991,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.13"
+version = "4.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64b17d7ea74e9f833c7dbf2cbe4fb12ff26783eda4782a8975b72f895c9b4d99"
+checksum = "216aec2b177652e3846684cbfe25c9964d18ec45234f0f5da5157b207ed1aab6"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1279,29 +1279,13 @@ checksum = "22ec99545bb0ed0ea7bb9b8e1e9122ea386ff8a48c0922e43f36d45ab09e0e80"
 
 [[package]]
 name = "crossterm"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f476fe445d41c9e991fd07515a6f463074b782242ccf4a5b7b1d1012e70824df"
-dependencies = [
- "bitflags 2.6.0",
- "crossterm_winapi",
- "libc",
- "mio 0.8.11",
- "parking_lot",
- "signal-hook",
- "signal-hook-mio",
- "winapi",
-]
-
-[[package]]
-name = "crossterm"
 version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "829d955a0bb380ef178a640b91779e3987da38c9aea133b20614cfed8cdea9c6"
 dependencies = [
  "bitflags 2.6.0",
  "crossterm_winapi",
- "mio 1.0.1",
+ "mio",
  "parking_lot",
  "rustix 0.38.34",
  "signal-hook",
@@ -1352,7 +1336,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "crossterm 0.27.0",
+ "crossterm",
  "env_logger",
  "getopts",
  "image",
@@ -2861,18 +2845,6 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
-dependencies = [
- "libc",
- "log",
- "wasi",
- "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "mio"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4569e456d394deccd22ce1c1913e6ea0e54519f577285001215d33557431afe4"
@@ -3843,17 +3815,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rename-to-md5"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dataset-tools",
- "md-5",
- "tokio",
- "walkdir",
-]
-
-[[package]]
 name = "renderdoc-sys"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4097,7 +4058,7 @@ name = "search-for-superscript-numbers"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "crossterm 0.27.0",
+ "crossterm",
  "dataset-tools",
  "regex",
  "tokio",
@@ -4164,9 +4125,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.122"
+version = "1.0.127"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "784b6203951c57ff748476b126ccb5e8e2959a5c19e5c617ab1956be3dbc68da"
+checksum = "8043c06d9f82bd7271361ed64f415fe5e12a77fdb52e573e7f06a516dea329ad"
 dependencies = [
  "itoa",
  "memchr",
@@ -4256,8 +4217,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34db1a06d485c9142248b7a054f034b349b212551f3dfd19c94d45a754a217cd"
 dependencies = [
  "libc",
- "mio 0.8.11",
- "mio 1.0.1",
+ "mio",
  "signal-hook",
 ]
 
@@ -4295,6 +4255,17 @@ dependencies = [
  "num-traits",
  "thiserror",
  "time",
+]
+
+[[package]]
+name = "simpletuner2kohya"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dataset-tools",
+ "md-5",
+ "tokio",
+ "walkdir",
 ]
 
 [[package]]
@@ -4690,14 +4661,14 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.39.2"
+version = "1.40.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daa4fb1bc778bd6f04cbfc4bb2d06a7396a8f299dc33ea1900cedaa316f467b1"
+checksum = "e2b070231665d27ad9ec9b8df639893f46727666c6767db40317fbe920a5d998"
 dependencies = [
  "backtrace",
  "bytes",
  "libc",
- "mio 1.0.1",
+ "mio",
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",

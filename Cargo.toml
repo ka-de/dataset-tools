@@ -61,17 +61,17 @@ strip = true
 md5 = "0.7.0"
 log = "0.4.22"
 env_logger = "0.11.5"
-clap = { version = "4.5.11", features = ["derive"] }
-regex = "1.10.5"
+clap = { version = "4.5.16", features = ["derive"] }
+regex = "1.10.6"
 walkdir = "2.5.0"
-crossterm = "0.27.0"
-serde_json = "1.0.121"
-safetensors = "0.4.3"
+crossterm = "0.28.1"
+serde_json = "1.0.127"
+safetensors = "0.4.4"
 memmap2 = "0.9.4"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 image = "0.25.2"
-tokio = { version = "1.39.2", features = ["full"] }
-redis = { version = "0.26.0", features = ["aio", "tokio-comp"] }
+tokio = { version = "1.40.0", features = ["full"] }
+redis = { version = "0.26.1", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
 # 🎲

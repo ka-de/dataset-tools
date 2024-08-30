@@ -15,21 +15,21 @@ crossterm = "0.27.0"
 #kmeans_colors = "0.6.0"
 image = "0.25.2"
 #palette = "0.7.6"
-serde_json = "1.0.121"
+serde_json = "1.0.127"
 walkdir = "2.5.0"
-regex = "1.10.5"
+regex = "1.10.6"
 #tabled = "0.15.0"
 #nalgebra = "0.33.0"
 #approx = "0.5.1"
 #plotters = "0.3.6"
 #colorous = "1.0.14"
-safetensors = "0.4.3"
+safetensors = "0.4.4"
 memmap2 = "0.9.4"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
-tokio = { version = "1.39.2", features = ["full"] }
+tokio = { version = "1.40.0", features = ["full"] }
 candle-core = { version = "0.6.0", features = ["mkl"] }
 candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
 octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
-redis = { version = "0.26.0", features = ["aio", "tokio-comp"] }
+redis = { version = "0.26.1", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
