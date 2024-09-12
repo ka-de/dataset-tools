@@ -22,7 +22,7 @@ use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc, process };
 use tokio::sync::Mutex;
 use anyhow::{ Result, Context };
 use toml::Value;
-use std::process::exit;
+use tokio::task;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -46,10 +46,6 @@ enum Commands {
         directory: String,
     },
     Pedantic {
-        #[arg(default_value = ".")]
-        directory: String,
-    },
-    Unwrap {
         #[arg(default_value = ".")]
         directory: String,
     },
@@ -80,7 +76,6 @@ async fn main() -> Result<()> {
         Commands::Multiline { directory } => check_multiline(directory).await?,
         Commands::Optimizations { directory } => check_optimizations(directory).await?,
         Commands::Pedantic { directory } => check_pedantic(directory).await?,
-        Commands::Unwrap { directory } => check_unwrap(directory).await?,
     }
 
     Ok(())
@@ -88,40 +83,38 @@ async fn main() -> Result<()> {
 
 async fn check_pedantic(directory: &str) -> Result<()> {
     let files_without_warning = Arc::new(Mutex::new(Vec::new()));
+    let target = PathBuf::from(directory).canonicalize().context("Failed to canonicalize path")?;
 
-    let target = PathBuf::from(directory);
-    let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;
-
-    if canonical_target.is_file() && canonical_target.extension().map_or(false, |ext| ext == "rs") {
-        let files_without_warning_clone = Arc::clone(&files_without_warning);
-        let mut guard = files_without_warning_clone.lock().await;
-        process_rust_file(&canonical_target, &mut *guard).await?;
-    } else if canonical_target.is_dir() {
-        walk_rust_files(&canonical_target, |path| {
-            let files_without_warning_clone = Arc::clone(&files_without_warning);
-            let path_buf = path.to_path_buf();
-            async move {
-                let mut guard = files_without_warning_clone.lock().await;
-                process_rust_file(&path_buf, &mut *guard).await
-            }
+    if target.is_file() && target.extension().map_or(false, |ext| ext == "rs") {
+        process_rust_file(&target, &files_without_warning).await?;
+    } else if target.is_dir() {
+        let mut tasks = Vec::new();
+        walk_rust_files(&target, |path| {
+            let files_without_warning = Arc::clone(&files_without_warning);
+            let task = task::spawn(async move {
+                process_rust_file(&path, &files_without_warning).await
+            });
+            tasks.push(task);
+            Ok(())
         }).await.context("Failed to walk through Rust files")?;
+
+        for task in tasks {
+            task.await??;
+        }
     } else {
-        println!("Invalid target. Please provide a .rs file or a directory.");
-        std::process::exit(1);
+        return Err(anyhow::anyhow!("Invalid target. Please provide a .rs file or a directory."));
     }
 
     let files_without_warning = files_without_warning.lock().await;
     if !files_without_warning.is_empty() {
-        println!("The following files are missing the required warning:");
         for file in files_without_warning.iter() {
             println!("{}", file.display());
         }
-        std::process::exit(1);
+        Err(anyhow::anyhow!("Some files are missing the required warning"))
     } else {
         println!("All Rust files contain the required warning.");
+        Ok(())
     }
-
-    Ok(())
 }
 
 async fn check_optimizations(target: &str) -> Result<()> {
@@ -270,44 +263,6 @@ async fn check_multiline(directory: &str) -> Result<()> {
         open_files_in_neovim(&files).await.context("Failed to open files in Neovim")?;
     } else {
         println!("No files with multiple lines found.");
-    }
-
-    Ok(())
-}
-
-async fn check_unwrap(directory: &str) -> Result<()> {
-    let re = Arc::new(Regex::new(r"\.unwrap\(\)").context("Failed to create regex")?);
-    let found_unwrap = Arc::new(Mutex::new(false));
-
-    walk_rust_files(Path::new(directory), |path| {
-        let re = Arc::clone(&re);
-        let found_unwrap = Arc::clone(&found_unwrap);
-        async move {
-            let lines = read_lines(&path).await?;
-            for (line_number, line) in lines.into_iter().enumerate() {
-                if re.is_match(&line) {
-                    let mut found_unwrap = found_unwrap.lock().await;
-                    *found_unwrap = true;
-                    let parts: Vec<&str> = line.split(".unwrap()").collect();
-                    stdout()
-                        .execute(SetForegroundColor(Color::Magenta))?
-                        .execute(Print(format!("{}:{}:", path.display(), line_number + 1)))?
-                        .execute(ResetColor)?
-                        .execute(Print(parts[0]))?
-                        .execute(SetForegroundColor(Color::Red))?
-                        .execute(Print(".unwrap()"))?
-                        .execute(ResetColor)?
-                        .execute(Print(parts[1]))?
-                        .execute(Print("\n"))?;
-                }
-            }
-            Ok(())
-        }
-    }).await?;
-
-    let found_unwrap = found_unwrap.lock().await;
-    if *found_unwrap {
-        exit(1);
     }
 
     Ok(())
