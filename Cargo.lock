@@ -924,17 +924,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "check-for-pedantic"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dataset-tools",
- "env_logger",
- "log",
- "tokio",
-]
-
-[[package]]
 name = "check-for-unwrap"
 version = "0.1.0"
 dependencies = [
