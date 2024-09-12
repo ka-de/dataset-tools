@@ -18,7 +18,7 @@ use dataset_tools::{
 };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
-use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc };
+use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc, process };
 use tokio::sync::Mutex;
 use anyhow::{ Result, Context };
 use toml::Value;
@@ -83,15 +83,26 @@ async fn main() -> Result<()> {
 async fn check_pedantic(directory: &str) -> Result<()> {
     let files_without_warning = Arc::new(Mutex::new(Vec::new()));
 
-    walk_rust_files(directory, |path| {
-        let files_without_warning = Arc::clone(&files_without_warning);
-        async move {
-            let mut guard = files_without_warning.lock().await;
-            process_rust_file(&path, &mut guard).await
-        }
-    })
-    .await
-    .context("Failed to walk through Rust files")?;
+    let target = PathBuf::from(directory);
+    let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;
+
+    if canonical_target.is_file() && canonical_target.extension().map_or(false, |ext| ext == "rs") {
+        let files_without_warning_clone = Arc::clone(&files_without_warning);
+        let mut guard = files_without_warning_clone.lock().await;
+        process_rust_file(&canonical_target, &mut *guard).await?;
+    } else if canonical_target.is_dir() {
+        walk_rust_files(&canonical_target, |path| {
+            let files_without_warning_clone = Arc::clone(&files_without_warning);
+            let path_buf = path.to_path_buf();
+            async move {
+                let mut guard = files_without_warning_clone.lock().await;
+                process_rust_file(&path_buf, &mut *guard).await
+            }
+        }).await.context("Failed to walk through Rust files")?;
+    } else {
+        println!("Invalid target. Please provide a .rs file or a directory.");
+        std::process::exit(1);
+    }
 
     let files_without_warning = files_without_warning.lock().await;
     if !files_without_warning.is_empty() {
