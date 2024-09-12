@@ -4022,16 +4022,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "search-for-empty-captions"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dataset-tools",
- "tokio",
- "walkdir",
-]
-
-[[package]]
 name = "search-for-superscript-numbers"
 version = "0.1.0"
 dependencies = [

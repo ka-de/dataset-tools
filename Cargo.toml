@@ -25,7 +25,6 @@ members = [
   "replace-special-characters",
   "rplc",
   "sample-browser",
-  "search-for-empty-captions",
   "search-for-superscript-numbers",
 ]
 
