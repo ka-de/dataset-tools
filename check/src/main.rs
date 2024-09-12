@@ -22,7 +22,6 @@ use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc, process };
 use tokio::sync::Mutex;
 use anyhow::{ Result, Context };
 use toml::Value;
-use tokio::task;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -83,38 +82,40 @@ async fn main() -> Result<()> {
 
 async fn check_pedantic(directory: &str) -> Result<()> {
     let files_without_warning = Arc::new(Mutex::new(Vec::new()));
-    let target = PathBuf::from(directory).canonicalize().context("Failed to canonicalize path")?;
 
-    if target.is_file() && target.extension().map_or(false, |ext| ext == "rs") {
-        process_rust_file(&target, &files_without_warning).await?;
-    } else if target.is_dir() {
-        let mut tasks = Vec::new();
-        walk_rust_files(&target, |path| {
-            let files_without_warning = Arc::clone(&files_without_warning);
-            let task = task::spawn(async move {
-                process_rust_file(&path, &files_without_warning).await
-            });
-            tasks.push(task);
-            Ok(())
+    let target = PathBuf::from(directory);
+    let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;
+
+    if canonical_target.is_file() && canonical_target.extension().map_or(false, |ext| ext == "rs") {
+        let files_without_warning_clone = Arc::clone(&files_without_warning);
+        let mut guard = files_without_warning_clone.lock().await;
+        process_rust_file(&canonical_target, &mut *guard).await?;
+    } else if canonical_target.is_dir() {
+        walk_rust_files(&canonical_target, |path| {
+            let files_without_warning_clone = Arc::clone(&files_without_warning);
+            let path_buf = path.to_path_buf();
+            async move {
+                let mut guard = files_without_warning_clone.lock().await;
+                process_rust_file(&path_buf, &mut *guard).await
+            }
         }).await.context("Failed to walk through Rust files")?;
-
-        for task in tasks {
-            task.await??;
-        }
     } else {
-        return Err(anyhow::anyhow!("Invalid target. Please provide a .rs file or a directory."));
+        println!("Invalid target. Please provide a .rs file or a directory.");
+        std::process::exit(1);
     }
 
     let files_without_warning = files_without_warning.lock().await;
     if !files_without_warning.is_empty() {
+        println!("The following files are missing the required warning:");
         for file in files_without_warning.iter() {
             println!("{}", file.display());
         }
-        Err(anyhow::anyhow!("Some files are missing the required warning"))
+        std::process::exit(1);
     } else {
         println!("All Rust files contain the required warning.");
-        Ok(())
     }
+
+    Ok(())
 }
 
 async fn check_optimizations(target: &str) -> Result<()> {
