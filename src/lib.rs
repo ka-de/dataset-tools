@@ -585,3 +585,177 @@ pub async fn remove_letterbox(input_path: &Path) -> io::Result<()> {
 
     Ok(())
 }
+
+pub const RUST_ATTRIBUTES: &[&str] = &[
+    "cfg",
+    "cfg_attr",
+    "test",
+    "ignore",
+    "should_panic",
+    "automatically_derived",
+    "macro_export",
+    "macro_use",
+    "proc_macro",
+    "proc_macro_derive",
+    "proc_macro_attribute",
+    "allow",
+    "warn",
+    "deny",
+    "forbid",
+    "deprecated",
+    "diagnostic::on_unimplemented",
+    "link",
+    "link_name",
+    "link_ordinal",
+    "no_link",
+    "repr",
+    "crate_type",
+    "no_main",
+    "export_name",
+    "link_section",
+    "no_mangle",
+    "used",
+    "crate_name",
+    "inline",
+    "cold",
+    "no_builtins",
+    "target_feature",
+    "track_caller",
+    "instruction_set",
+    "doc",
+    "no_std",
+    "no_implicit_prelude",
+    "path",
+    "recursion_limit",
+    "type_length_limit",
+    "panic_handler",
+    "global_allocator",
+    "windows_subsystem",
+    "feature",
+    "non_exhaustive",
+    "debugger_visualizer",
+];
+
+pub async fn check_pedantic(directory: &str) -> Result<Vec<PathBuf>> {
+    let files_without_warning = Arc::new(Mutex::new(Vec::new()));
+
+    let target = PathBuf::from(directory);
+    let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;
+
+    if canonical_target.is_file() && canonical_target.extension().map_or(false, |ext| ext == "rs") {
+        let mut guard = files_without_warning.lock().await;
+        process_rust_file(&canonical_target, &mut *guard).await?;
+    } else if canonical_target.is_dir() {
+        walk_rust_files(&canonical_target, |path| {
+            let files_without_warning_clone = Arc::clone(&files_without_warning);
+            let path_buf = path.to_path_buf();
+            async move {
+                let mut guard = files_without_warning_clone.lock().await;
+                process_rust_file(&path_buf, &mut *guard).await
+            }
+        }).await.context("Failed to walk through Rust files")?;
+    } else {
+        return Err(anyhow::anyhow!("Invalid target. Please provide a .rs file or a directory."));
+    }
+
+    Ok(Arc::try_unwrap(files_without_warning).unwrap().into_inner())
+}
+
+pub async fn check_optimizations(target: &str) -> Result<Vec<PathBuf>> {
+    let target_path = Path::new(target);
+    let missing_configs = Arc::new(Mutex::new(Vec::new()));
+
+    if target_path.is_file() && target_path.file_name().unwrap() == "Cargo.toml" {
+        if !check_cargo_toml(target_path).await.unwrap_or(false) {
+            missing_configs.lock().await.push(target_path.to_owned());
+        }
+    } else if target_path.is_dir() {
+        walk_directory(target_path, "toml", |path: PathBuf| {
+            let missing_configs = Arc::clone(&missing_configs);
+            async move {
+                if
+                    path.file_name().unwrap() == "Cargo.toml" &&
+                    !check_cargo_toml(&path).await.unwrap_or(false)
+                {
+                    missing_configs.lock().await.push(path);
+                }
+                Ok(())
+            }
+        }).await?;
+    } else {
+        return Err(anyhow::anyhow!("Invalid path: {}", target_path.display()));
+    }
+
+    Ok(Arc::try_unwrap(missing_configs).unwrap().into_inner())
+}
+
+pub async fn check_cargo_toml(path: &Path) -> Result<bool> {
+    let content = read_file_content(path.to_str().unwrap()).await.context("Failed to read file")?;
+    let toml_value: Value = content.parse().context("Failed to parse TOML")?;
+
+    let Some(profile) = toml_value.get("profile") else {
+        return Ok(false);
+    };
+
+    // Check [profile.dev]
+    let Some(dev) = profile.get("dev") else {
+        return Ok(false);
+    };
+    if dev.get("opt-level") != Some(&Value::Integer(3)) {
+        return Ok(false);
+    }
+
+    // Check [profile.dev.package."*"]
+    let Some(dev_package) = dev.get("package").and_then(|p| p.get("*")) else {
+        return Ok(false);
+    };
+    if
+        dev_package.get("opt-level") != Some(&Value::Integer(3)) ||
+        dev_package.get("codegen-units") != Some(&Value::Integer(1))
+    {
+        return Ok(false);
+    }
+
+    // Check [profile.release]
+    let Some(release) = profile.get("release") else {
+        return Ok(false);
+    };
+    if
+        release.get("opt-level") != Some(&Value::Integer(3)) ||
+        release.get("lto") != Some(&Value::Boolean(true)) ||
+        release.get("codegen-units") != Some(&Value::Integer(1)) ||
+        release.get("strip") != Some(&Value::Boolean(true))
+    {
+        return Ok(false);
+    }
+
+    Ok(true)
+}
+
+pub async fn check_attributes(
+    directory: &str,
+    attributes: &[&str]
+) -> Result<Vec<(PathBuf, usize, String)>> {
+    let re = Arc::new(
+        Regex::new(
+            &format!(r"#\[\s*({})|#!\[\s*({})\]", attributes.join("|"), attributes.join("|"))
+        ).context("Failed to create regex")?
+    );
+    let matches = Arc::new(Mutex::new(Vec::new()));
+
+    walk_rust_files(directory, move |path: PathBuf| {
+        let re = Arc::clone(&re);
+        let matches = Arc::clone(&matches);
+        async move {
+            let lines = read_lines(&path).await?;
+            for (line_number, line) in lines.iter().enumerate() {
+                if re.is_match(line) {
+                    matches.lock().await.push((path.clone(), line_number + 1, line.to_string()));
+                }
+            }
+            Ok(())
+        }
+    }).await.context("Failed to walk rust files")?;
+
+    Ok(Arc::try_unwrap(matches).unwrap().into_inner())
+}
