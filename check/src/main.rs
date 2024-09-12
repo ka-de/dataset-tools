@@ -15,10 +15,8 @@ use dataset_tools::{
     open_files_in_neovim,
     read_file_content,
     process_rust_file,
-    check_pedantic,
-    check_optimizations,
-    check_attributes,
-    RUST_ATTRIBUTES,
+    is_image_file,
+    caption_file_exists_and_not_empty,
 };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
@@ -52,25 +50,68 @@ enum Commands {
         #[arg(default_value = ".")]
         directory: String,
     },
+    EmptyCaptions {
+        #[arg(default_value = ".")]
+        directory: String,
+    },
 }
+
+// List of built-in attributes in Rust
+#[rustfmt::skip]
+const ATTRIBUTES: &[&str] = &[
+    "cfg", "cfg_attr", "test", "ignore", "should_panic", //"derive",
+    "automatically_derived", "macro_export", "macro_use", "proc_macro",
+    "proc_macro_derive", "proc_macro_attribute", "allow", "warn",
+    "deny", "forbid", "deprecated", //"must_use",
+    "diagnostic::on_unimplemented", "link", "link_name", "link_ordinal",
+    "no_link", "repr", "crate_type", "no_main", "export_name", "link_section",
+    "no_mangle", "used", "crate_name", "inline", "cold", "no_builtins",
+    "target_feature", "track_caller", "instruction_set", "doc", "no_std",
+    "no_implicit_prelude", "path", "recursion_limit", "type_length_limit",
+    "panic_handler", "global_allocator", "windows_subsystem",
+	 "feature", "non_exhaustive", "debugger_visualizer", // "tokio::main",
+];
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Attributes { directory } => check_attributes_command(directory).await?,
+        Commands::Attributes { directory } => check_attributes(directory).await?,
         Commands::Multiline { directory } => check_multiline(directory).await?,
-        Commands::Optimizations { directory } => check_optimizations_command(directory).await?,
-        Commands::Pedantic { directory } => check_pedantic_command(directory).await?,
+        Commands::Optimizations { directory } => check_optimizations(directory).await?,
+        Commands::Pedantic { directory } => check_pedantic(directory).await?,
+        Commands::EmptyCaptions { directory } => check_empty_captions(directory).await?,
     }
 
     Ok(())
 }
 
-async fn check_pedantic_command(directory: &str) -> Result<()> {
-    let files_without_warning = check_pedantic(directory).await?;
+async fn check_pedantic(directory: &str) -> Result<()> {
+    let files_without_warning = Arc::new(Mutex::new(Vec::new()));
 
+    let target = PathBuf::from(directory);
+    let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;
+
+    if canonical_target.is_file() && canonical_target.extension().map_or(false, |ext| ext == "rs") {
+        let files_without_warning_clone = Arc::clone(&files_without_warning);
+        let mut guard = files_without_warning_clone.lock().await;
+        process_rust_file(&canonical_target, &mut *guard).await?;
+    } else if canonical_target.is_dir() {
+        walk_rust_files(&canonical_target, |path| {
+            let files_without_warning_clone = Arc::clone(&files_without_warning);
+            let path_buf = path.to_path_buf();
+            async move {
+                let mut guard = files_without_warning_clone.lock().await;
+                process_rust_file(&path_buf, &mut *guard).await
+            }
+        }).await.context("Failed to walk through Rust files")?;
+    } else {
+        println!("Invalid target. Please provide a .rs file or a directory.");
+        std::process::exit(1);
+    }
+
+    let files_without_warning = files_without_warning.lock().await;
     if !files_without_warning.is_empty() {
         println!("The following files are missing the required warning:");
         for file in files_without_warning.iter() {
@@ -84,9 +125,33 @@ async fn check_pedantic_command(directory: &str) -> Result<()> {
     Ok(())
 }
 
-async fn check_optimizations_command(target: &str) -> Result<()> {
-    let missing_configs = check_optimizations(target).await?;
+async fn check_optimizations(target: &str) -> Result<()> {
+    let target_path = Path::new(target);
+    let missing_configs = Arc::new(Mutex::new(Vec::new()));
 
+    if target_path.is_file() && target_path.file_name().unwrap() == "Cargo.toml" {
+        if !check_cargo_toml(target_path).await.unwrap_or(false) {
+            missing_configs.lock().await.push(target_path.to_owned());
+        }
+    } else if target_path.is_dir() {
+        walk_directory(target_path, "toml", |path: PathBuf| {
+            let missing_configs = Arc::clone(&missing_configs);
+            async move {
+                if
+                    path.file_name().unwrap() == "Cargo.toml" &&
+                    !check_cargo_toml(&path).await.unwrap_or(false)
+                {
+                    missing_configs.lock().await.push(path);
+                }
+                Ok(())
+            }
+        }).await?;
+    } else {
+        println!("Invalid path: {}", target_path.display());
+        return Ok(());
+    }
+
+    let missing_configs = missing_configs.lock().await;
     if missing_configs.is_empty() {
         println!("All Cargo.toml files contain the required configurations.");
     } else {
@@ -99,21 +164,89 @@ async fn check_optimizations_command(target: &str) -> Result<()> {
     Ok(())
 }
 
-async fn check_attributes_command(directory: &str) -> Result<()> {
-    let matches = check_attributes(directory, RUST_ATTRIBUTES).await?;
+async fn check_cargo_toml(path: &Path) -> Result<bool> {
+    let content = read_file_content(path.to_str().unwrap()).await.context("Failed to read file")?;
+    let toml_value: Value = content.parse().context("Failed to parse TOML")?;
 
-    for (path, line_number, line) in matches {
-        stdout()
-            .execute(SetForegroundColor(Color::Magenta))
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-        println!("{}:{}", path.display(), line_number);
-        stdout()
-            .execute(ResetColor)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    let Some(profile) = toml_value.get("profile") else {
+        return Ok(false);
+    };
 
-        println!("{}", line.red());
-        println!();
+    // Check [profile.dev]
+    let Some(dev) = profile.get("dev") else {
+        return Ok(false);
+    };
+    if dev.get("opt-level") != Some(&Value::Integer(3)) {
+        return Ok(false);
     }
+
+    // Check [profile.dev.package."*"]
+    let Some(dev_package) = dev.get("package").and_then(|p| p.get("*")) else {
+        return Ok(false);
+    };
+    if
+        dev_package.get("opt-level") != Some(&Value::Integer(3)) ||
+        dev_package.get("codegen-units") != Some(&Value::Integer(1))
+    {
+        return Ok(false);
+    }
+
+    // Check [profile.release]
+    let Some(release) = profile.get("release") else {
+        return Ok(false);
+    };
+    if
+        release.get("opt-level") != Some(&Value::Integer(3)) ||
+        release.get("lto") != Some(&Value::Boolean(true)) ||
+        release.get("codegen-units") != Some(&Value::Integer(1)) ||
+        release.get("strip") != Some(&Value::Boolean(true))
+    {
+        return Ok(false);
+    }
+
+    Ok(true)
+}
+
+async fn check_attributes(directory: &str) -> Result<()> {
+    let re = Arc::new(
+        Regex::new(
+            &format!(r"#\[\s*({})|#!\[\s*({})\]", ATTRIBUTES.join("|"), ATTRIBUTES.join("|"))
+        ).context("Failed to create regex")?
+    );
+
+    walk_rust_files(directory, move |path: PathBuf| {
+        let re = Arc::clone(&re);
+        async move {
+            let lines = read_lines(&path).await?;
+            for (line_number, line) in lines.iter().enumerate() {
+                if re.is_match(line) {
+                    let start = line_number.saturating_sub(3);
+                    let end = (line_number + 2).min(lines.len());
+
+                    stdout()
+                        .execute(SetForegroundColor(Color::Magenta))
+                        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+                    println!("{}:{}", path.display(), line_number + 1);
+                    stdout()
+                        .execute(ResetColor)
+                        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+
+                    for (i, line) in lines[start..end].iter().enumerate() {
+                        if i + start == line_number {
+                            let highlighted = re.replace_all(line, |caps: &regex::Captures| {
+                                format!("{}", caps[0].red())
+                            });
+                            println!("{highlighted}");
+                        } else {
+                            println!("{line}");
+                        }
+                    }
+                    println!();
+                }
+            }
+            Ok(())
+        }
+    }).await.context("Failed to walk rust files")?;
 
     Ok(())
 }
@@ -138,6 +271,35 @@ async fn check_multiline(directory: &str) -> Result<()> {
         open_files_in_neovim(&files).await.context("Failed to open files in Neovim")?;
     } else {
         println!("No files with multiple lines found.");
+    }
+
+    Ok(())
+}
+
+async fn check_empty_captions(directory: &str) -> Result<()> {
+    let empty_captions = Arc::new(Mutex::new(Vec::new()));
+
+    walk_directory(directory, "jpg", |path| {
+        let empty_captions = Arc::clone(&empty_captions);
+        async move {
+            if is_image_file(&path) {
+                let caption_path = path.with_extension("txt");
+                if !caption_file_exists_and_not_empty(&caption_path).await {
+                    empty_captions.lock().await.push(path);
+                }
+            }
+            Ok(())
+        }
+    }).await.context("Failed to walk directory")?;
+
+    let files = empty_captions.lock().await;
+    if !files.is_empty() {
+        println!("The following image files have empty or missing captions:");
+        for file in files.iter() {
+            println!("{}", file.display());
+        }
+    } else {
+        println!("No image files with empty or missing captions found.");
     }
 
     Ok(())
