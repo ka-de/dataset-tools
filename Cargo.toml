@@ -22,7 +22,6 @@ members = [
   "remove-transparency",
   "remove-url-files",
   "rename-to-md5",
-  "replace-special-characters",
   "rplc",
   "sample-browser",
   "search-for-superscript-numbers",
