@@ -924,17 +924,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "check-for-unwrap"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "dataset-tools",
- "regex",
- "tokio",
- "walkdir",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"

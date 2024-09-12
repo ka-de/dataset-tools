@@ -3,7 +3,6 @@ resolver = "2"
 members = [
   "check",
   "check-for-cringe-summaries",
-  "check-for-unwrap",
   "compress-exe",
   "convert-caption-json-to-txt",
   "convert-e621-json-to-caption",

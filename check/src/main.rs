@@ -22,6 +22,7 @@ use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc, process };
 use tokio::sync::Mutex;
 use anyhow::{ Result, Context };
 use toml::Value;
+use std::process::exit;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -45,6 +46,10 @@ enum Commands {
         directory: String,
     },
     Pedantic {
+        #[arg(default_value = ".")]
+        directory: String,
+    },
+    Unwrap {
         #[arg(default_value = ".")]
         directory: String,
     },
@@ -75,6 +80,7 @@ async fn main() -> Result<()> {
         Commands::Multiline { directory } => check_multiline(directory).await?,
         Commands::Optimizations { directory } => check_optimizations(directory).await?,
         Commands::Pedantic { directory } => check_pedantic(directory).await?,
+        Commands::Unwrap { directory } => check_unwrap(directory).await?,
     }
 
     Ok(())
@@ -264,6 +270,44 @@ async fn check_multiline(directory: &str) -> Result<()> {
         open_files_in_neovim(&files).await.context("Failed to open files in Neovim")?;
     } else {
         println!("No files with multiple lines found.");
+    }
+
+    Ok(())
+}
+
+async fn check_unwrap(directory: &str) -> Result<()> {
+    let re = Arc::new(Regex::new(r"\.unwrap\(\)").context("Failed to create regex")?);
+    let found_unwrap = Arc::new(Mutex::new(false));
+
+    walk_rust_files(Path::new(directory), |path| {
+        let re = Arc::clone(&re);
+        let found_unwrap = Arc::clone(&found_unwrap);
+        async move {
+            let lines = read_lines(&path).await?;
+            for (line_number, line) in lines.into_iter().enumerate() {
+                if re.is_match(&line) {
+                    let mut found_unwrap = found_unwrap.lock().await;
+                    *found_unwrap = true;
+                    let parts: Vec<&str> = line.split(".unwrap()").collect();
+                    stdout()
+                        .execute(SetForegroundColor(Color::Magenta))?
+                        .execute(Print(format!("{}:{}:", path.display(), line_number + 1)))?
+                        .execute(ResetColor)?
+                        .execute(Print(parts[0]))?
+                        .execute(SetForegroundColor(Color::Red))?
+                        .execute(Print(".unwrap()"))?
+                        .execute(ResetColor)?
+                        .execute(Print(parts[1]))?
+                        .execute(Print("\n"))?;
+                }
+            }
+            Ok(())
+        }
+    }).await?;
+
+    let found_unwrap = found_unwrap.lock().await;
+    if *found_unwrap {
+        exit(1);
     }
 
     Ok(())
