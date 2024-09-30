@@ -52,6 +52,9 @@ lto = true
 codegen-units = 1
 strip = true
 
+[dev-dependencies]
+criterion = "0.3"
+
 [dependencies]
 # Command Line Argument Parser for Rust
 md5 = "0.7.0"

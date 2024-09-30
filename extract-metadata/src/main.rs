@@ -8,6 +8,8 @@
 use dataset_tools::{ walk_directory, process_safetensors_file };
 use std::env;
 use std::path::Path;
+use glob::glob;
+use anyhow::Context;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -25,8 +27,21 @@ async fn main() -> anyhow::Result<()> {
         walk_directory(path, "safetensors", |file_path| {
             async move { process_safetensors_file(&file_path).await }
         }).await?;
+    } else if let Some(path_str) = path.to_str() {
+        if path_str.contains('*') {
+            for entry in glob(path_str).context("Failed to read glob pattern")? {
+                match entry {
+                    Ok(path) => {
+                        process_safetensors_file(&path).await?;
+                    }
+                    Err(e) => println!("Error processing entry: {:?}", e),
+                }
+            }
+        } else {
+            process_safetensors_file(path).await?;
+        }
     } else {
-        process_safetensors_file(path).await?;
+        return Err(anyhow::anyhow!("Invalid path provided"));
     }
 
     Ok(())

@@ -701,7 +701,7 @@ pub async fn check_cargo_toml(path: &Path) -> Result<bool> {
     let Some(dev) = profile.get("dev") else {
         return Ok(false);
     };
-    if dev.get("opt-level") != Some(&Value::Integer(3)) {
+    if dev.get("opt-level").and_then(|v| v.as_i64()) != Some(3) {
         return Ok(false);
     }
 
@@ -710,8 +710,8 @@ pub async fn check_cargo_toml(path: &Path) -> Result<bool> {
         return Ok(false);
     };
     if
-        dev_package.get("opt-level") != Some(&Value::Integer(3)) ||
-        dev_package.get("codegen-units") != Some(&Value::Integer(1))
+        dev_package.get("opt-level").and_then(|v| v.as_i64()) != Some(3) ||
+        dev_package.get("codegen-units").and_then(|v| v.as_i64()) != Some(1)
     {
         return Ok(false);
     }
@@ -721,10 +721,10 @@ pub async fn check_cargo_toml(path: &Path) -> Result<bool> {
         return Ok(false);
     };
     if
-        release.get("opt-level") != Some(&Value::Integer(3)) ||
-        release.get("lto") != Some(&Value::Boolean(true)) ||
-        release.get("codegen-units") != Some(&Value::Integer(1)) ||
-        release.get("strip") != Some(&Value::Boolean(true))
+        release.get("opt-level").and_then(|v| v.as_i64()) != Some(3) ||
+        release.get("lto").and_then(|v| v.as_bool()) != Some(true) ||
+        release.get("codegen-units").and_then(|v| v.as_i64()) != Some(1) ||
+        release.get("strip").and_then(|v| v.as_bool()) != Some(true)
     {
         return Ok(false);
     }
@@ -743,17 +743,23 @@ pub async fn check_attributes(
     );
     let matches = Arc::new(Mutex::new(Vec::new()));
 
-    walk_rust_files(directory, move |path: PathBuf| {
+    walk_rust_files(directory, {
         let re = Arc::clone(&re);
         let matches = Arc::clone(&matches);
-        async move {
-            let lines = read_lines(&path).await?;
-            for (line_number, line) in lines.iter().enumerate() {
-                if re.is_match(line) {
-                    matches.lock().await.push((path.clone(), line_number + 1, line.to_string()));
+        move |path: PathBuf| {
+            let re = Arc::clone(&re);
+            let matches = Arc::clone(&matches);
+            async move {
+                let lines = read_lines(&path).await?;
+                for (line_number, line) in lines.iter().enumerate() {
+                    if re.is_match(line) {
+                        matches
+                            .lock().await
+                            .push((path.clone(), line_number + 1, line.to_string()));
+                    }
                 }
+                Ok(())
             }
-            Ok(())
         }
     }).await.context("Failed to walk rust files")?;
 

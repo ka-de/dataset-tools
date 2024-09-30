@@ -20,7 +20,7 @@ use dataset_tools::{
 };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
-use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc, process };
+use std::{ io, io::stdout, path::{ PathBuf, Path }, sync::Arc };
 use tokio::sync::Mutex;
 use anyhow::{ Result, Context };
 use toml::Value;

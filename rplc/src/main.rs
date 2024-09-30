@@ -14,7 +14,7 @@
 #![warn(clippy::all, clippy::pedantic)]
 
 use std::env;
-use std::path::PathBuf;
+use std::path::{ PathBuf, Path };
 use anyhow::{ Result, Context };
 use dataset_tools::{ walk_directory, format_text_content };
 use tokio::fs;
