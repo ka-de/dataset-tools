@@ -16,6 +16,7 @@
 // - Converting JSON files to caption files
 // - Deleting files with a specific extension in a directory and its subdirectories
 // - Removing letterboxing from image files
+// - Splitting comic book pages into individual panels based on black borders
 //
 // This library is designed to be a useful set of tools for working with a variety of data types and formats,
 // simplifying common data processing tasks and helping to maintain code quality and consistency.
@@ -64,6 +65,7 @@ use tokio::{
 };
 use regex::Regex;
 use regex::Error as RegexError;
+use jpegxl_rs::JxlDecoder;
 
 /// Processes a file and adds it to a list if it contains multiple lines.
 ///
@@ -364,7 +366,7 @@ pub async fn process_safetensors_file(path: &Path) -> Result<()> {
 #[must_use = "Determines if the path is an image file and the result should be checked"]
 pub fn is_image_file(path: &Path) -> bool {
     match path.extension().and_then(|e| e.to_str()) {
-        Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png"),
+        Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png" | "jxl"),
         None => false,
     }
 }
@@ -582,6 +584,64 @@ pub async fn remove_letterbox(input_path: &Path) -> io::Result<()> {
         .write_to(&mut std::io::Cursor::new(&mut buf), ImageFormat::Png)
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
     fs::write(input_path, buf).await?;
+
+    Ok(())
+}
+
+/// Splits a comic book page into individual panels based on black borders.
+///
+/// # Errors
+///
+/// Returns an `io::Error` if there's an issue with image processing or file operations.
+#[must_use = "Splits a comic book page into individual panels and requires handling of the result to ensure proper image modification"]
+pub async fn split_comic_panels(input_path: &Path) -> Result<()> {
+    let img_bytes = fs::read(input_path).await?;
+    let mut img = if input_path.extension().and_then(|e| e.to_str()) == Some("jxl") {
+        let decoder = JxlDecoder::new();
+        let decoded_img = decoder.decode(&img_bytes)?;
+        image::DynamicImage::ImageRgba8(decoded_img)
+    } else {
+        image::load_from_memory(&img_bytes)?
+    };
+
+    let (width, height) = img.dimensions();
+    let mut panels = Vec::new();
+
+    // Detect horizontal and vertical black lines
+    let mut horizontal_lines = vec![0];
+    let mut vertical_lines = vec![0];
+
+    for y in 0..height {
+        if (0..width).all(|x| img.get_pixel(x, y)[0] == 0) {
+            horizontal_lines.push(y);
+        }
+    }
+    horizontal_lines.push(height);
+
+    for x in 0..width {
+        if (0..height).all(|y| img.get_pixel(x, y)[0] == 0) {
+            vertical_lines.push(x);
+        }
+    }
+    vertical_lines.push(width);
+
+    // Extract panels based on detected lines
+    for h in horizontal_lines.windows(2) {
+        for v in vertical_lines.windows(2) {
+            let panel = img.crop(v[0], h[0], v[1] - v[0], h[1] - h[0]);
+            panels.push(panel);
+        }
+    }
+
+    // Save panels
+    for (i, panel) in panels.iter().enumerate() {
+        let mut buf = Vec::new();
+        panel.write_to(&mut std::io::Cursor::new(&mut buf), ImageFormat::Png)?;
+        let output_path = input_path.with_file_name(
+            format!("{}_panel_{}.png", input_path.file_stem().unwrap().to_str().unwrap(), i)
+        );
+        fs::write(output_path, buf).await?;
+    }
 
     Ok(())
 }
