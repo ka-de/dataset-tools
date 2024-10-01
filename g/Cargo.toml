@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
 tokio = { version = "1.40.0", features = ["full"] }
-redis = { version = "0.26.1", features = ["aio", "tokio-comp"] }
+redis = { version = "0.27.2", features = ["aio", "tokio-comp"] }
 url = "2.5.2"
 getopts = "0.2.21"
 

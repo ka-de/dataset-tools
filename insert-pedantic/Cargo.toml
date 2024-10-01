@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 dataset-tools = { path = ".." }
-anyhow = { version = "1.0.86", features = ["backtrace"] }
+anyhow = { version = "1.0.89", features = ["backtrace"] }
 tokio = { version = "1.40.0", features = ["full"] }
