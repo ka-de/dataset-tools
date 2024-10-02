@@ -6,6 +6,6 @@ edition = "2021"
 [dependencies]
 dataset_tools = { path = ".." }
 tokio = { version = "1.40.0", features = ["full"] }
-anyhow = "1.0.86"
-serde_json = "1.0.127"
-regex = "1.10.6"
+anyhow = "1.0.89"
+serde_json = "1.0.128"
+regex = "1.11.0"

@@ -3,8 +3,6 @@ resolver = "2"
 members = [
   "check",
   "check-for-cringe-summaries",
-  "check-for-pedantic",
-  "check-for-unwrap",
   "compress-exe",
   "convert-caption-json-to-txt",
   "convert-e621-json-to-caption",
@@ -24,10 +22,8 @@ members = [
   "remove-transparency",
   "remove-url-files",
   "rename-to-md5",
-  "replace-special-characters",
   "rplc",
   "sample-browser",
-  "search-for-empty-captions",
   "search-for-superscript-numbers",
 ]
 
@@ -56,19 +52,23 @@ lto = true
 codegen-units = 1
 strip = true
 
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+#criterion = { git = "https://github.com/bheisler/criterion.rs", features = ["html_reports"] }
+
 [dependencies]
 # Command Line Argument Parser for Rust
 md5 = "0.7.0"
 log = "0.4.22"
 env_logger = "0.11.5"
-clap = { version = "4.5.16", features = ["derive"] }
-regex = "1.10.6"
+clap = { version = "4.5.18", features = ["derive"] }
+regex = "1.11.0"
 walkdir = "2.5.0"
 crossterm = "0.28.1"
-serde_json = "1.0.127"
-safetensors = "0.4.4"
-memmap2 = "0.9.4"
-anyhow = { version = "1.0.86", features = ["backtrace"] }
+serde_json = "1.0.128"
+safetensors = "0.4.5"
+memmap2 = "0.9.5"
+anyhow = { version = "1.0.89", features = ["backtrace"] }
 image = "0.25.2"
 tokio = { version = "1.40.0", features = ["full"] }
 redis = { version = "0.26.1", features = ["aio", "tokio-comp"] }

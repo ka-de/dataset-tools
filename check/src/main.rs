@@ -15,6 +15,8 @@ use dataset_tools::{
     open_files_in_neovim,
     read_file_content,
     process_rust_file,
+    is_image_file,
+    caption_file_exists_and_not_empty,
 };
 use regex::Regex;
 use crossterm::{ style::{ Color, SetForegroundColor, ResetColor, Stylize }, ExecutableCommand };
@@ -48,6 +50,10 @@ enum Commands {
         #[arg(default_value = ".")]
         directory: String,
     },
+    EmptyCaptions {
+        #[arg(default_value = ".")]
+        directory: String,
+    },
 }
 
 // List of built-in attributes in Rust
@@ -75,6 +81,7 @@ async fn main() -> Result<()> {
         Commands::Multiline { directory } => check_multiline(directory).await?,
         Commands::Optimizations { directory } => check_optimizations(directory).await?,
         Commands::Pedantic { directory } => check_pedantic(directory).await?,
+        Commands::EmptyCaptions { directory } => check_empty_captions(directory).await?,
     }
 
     Ok(())
@@ -83,15 +90,26 @@ async fn main() -> Result<()> {
 async fn check_pedantic(directory: &str) -> Result<()> {
     let files_without_warning = Arc::new(Mutex::new(Vec::new()));
 
-    walk_rust_files(directory, |path| {
-        let files_without_warning = Arc::clone(&files_without_warning);
-        async move {
-            let mut guard = files_without_warning.lock().await;
-            process_rust_file(&path, &mut guard).await
-        }
-    })
-    .await
-    .context("Failed to walk through Rust files")?;
+    let target = PathBuf::from(directory);
+    let canonical_target = target.canonicalize().context("Failed to canonicalize path")?;
+
+    if canonical_target.is_file() && canonical_target.extension().map_or(false, |ext| ext == "rs") {
+        let files_without_warning_clone = Arc::clone(&files_without_warning);
+        let mut guard = files_without_warning_clone.lock().await;
+        process_rust_file(&canonical_target, &mut *guard).await?;
+    } else if canonical_target.is_dir() {
+        walk_rust_files(&canonical_target, |path| {
+            let files_without_warning_clone = Arc::clone(&files_without_warning);
+            let path_buf = path.to_path_buf();
+            async move {
+                let mut guard = files_without_warning_clone.lock().await;
+                process_rust_file(&path_buf, &mut *guard).await
+            }
+        }).await.context("Failed to walk through Rust files")?;
+    } else {
+        println!("Invalid target. Please provide a .rs file or a directory.");
+        std::process::exit(1);
+    }
 
     let files_without_warning = files_without_warning.lock().await;
     if !files_without_warning.is_empty() {
@@ -253,6 +271,35 @@ async fn check_multiline(directory: &str) -> Result<()> {
         open_files_in_neovim(&files).await.context("Failed to open files in Neovim")?;
     } else {
         println!("No files with multiple lines found.");
+    }
+
+    Ok(())
+}
+
+async fn check_empty_captions(directory: &str) -> Result<()> {
+    let empty_captions = Arc::new(Mutex::new(Vec::new()));
+
+    walk_directory(directory, "jpg", |path| {
+        let empty_captions = Arc::clone(&empty_captions);
+        async move {
+            if is_image_file(&path) {
+                let caption_path = path.with_extension("txt");
+                if !caption_file_exists_and_not_empty(&caption_path).await {
+                    empty_captions.lock().await.push(path);
+                }
+            }
+            Ok(())
+        }
+    }).await.context("Failed to walk directory")?;
+
+    let files = empty_captions.lock().await;
+    if !files.is_empty() {
+        println!("The following image files have empty or missing captions:");
+        for file in files.iter() {
+            println!("{}", file.display());
+        }
+    } else {
+        println!("No image files with empty or missing captions found.");
     }
 
     Ok(())
