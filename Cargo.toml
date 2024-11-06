@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
+
 members = [
   "check",
   "check-for-cringe-summaries",
@@ -10,7 +11,6 @@ members = [
   "extract-metadata",
   "fix-multiline-tags",
   "format-json",
-  "g",
   "insert-pedantic",
   "keep-tokens",
   "letterbox-remover",
@@ -71,60 +71,7 @@ memmap2 = "0.9.5"
 anyhow = { version = "1.0.92", features = ["backtrace"] }
 image = "0.25.5"
 tokio = { version = "1.41.0", features = ["full"] }
-redis = { version = "0.27.5", features = ["aio", "tokio-comp"] }
 url = "2.5.3"
 getopts = "0.2.21"
 # 🎲
 rand = { version = "0.8.5", features = ["log", "small_rng"] }
-# 🐙
-octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
-# Candle
-#candle-core = { version = "0.6.0", features = ["mkl"] }
-#candle-transformers = { version = "0.6.0", features = ["mkl"] }
-#candle-nn = { version = "0.6.0", features = ["mkl"] }
-# Candle Third-Party
-#candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
-#intel-mkl-src = { version = "0.8.1" }
-#hf-hub = { version = "0.3.2", features = ["tokio"] }
-#tokenizers = { version = "0.19.1", features = ["onig"] }
-
-##################################################
-### Examples
-
-### ML
-
-#[[example]]
-#name = "candle_einops_basic"
-#path = "examples/candle-einops/basic.rs"
-
-### Redis
-
-[[example]]
-name = "redis_insert_awoo"
-path = "examples/redis/insert_awoo.rs"
-
-[[example]]
-name = "redis_dump"
-path = "examples/redis/dump.rs"
-
-[[example]]
-name = "redis_get_github_repos"
-path = "examples/redis/get_github_repos.rs"
-
-### Github
-
-[[example]]
-name = "github_gist"
-path = "examples/github/gist.rs"
-
-[[example]]
-name = "github_redis_user_repos_hash"
-path = "examples/github/redis_user_repos_hash.rs"
-
-[[example]]
-name = "github_get_repos"
-path = "examples/github/get_repos.rs"
-
-[[example]]
-name = "github_single_repo_stats"
-path = "examples/github/single_repo_stats.rs"
