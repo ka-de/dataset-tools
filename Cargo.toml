@@ -8,6 +8,7 @@ members = [
   "convert-e621-json-to-caption",
   "create-empty-caption-files",
   "extract-metadata",
+  "fix-multiline-tags",
   "format-json",
   "g",
   "hotdogaug",
@@ -61,18 +62,18 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 md5 = "0.7.0"
 log = "0.4.22"
 env_logger = "0.11.5"
-clap = { version = "4.5.18", features = ["derive"] }
-regex = "1.11.0"
+clap = { version = "4.5.20", features = ["derive"] }
+regex = "1.11.1"
 walkdir = "2.5.0"
 crossterm = "0.28.1"
-serde_json = "1.0.128"
+serde_json = "1.0.132"
 safetensors = "0.4.5"
 memmap2 = "0.9.5"
-anyhow = { version = "1.0.89", features = ["backtrace"] }
-image = "0.25.2"
-tokio = { version = "1.40.0", features = ["full"] }
-redis = { version = "0.26.1", features = ["aio", "tokio-comp"] }
-url = "2.5.2"
+anyhow = { version = "1.0.92", features = ["backtrace"] }
+image = "0.25.5"
+tokio = { version = "1.41.0", features = ["full"] }
+redis = { version = "0.27.5", features = ["aio", "tokio-comp"] }
+url = "2.5.3"
 getopts = "0.2.21"
 # 🎲
 rand = { version = "0.8.5", features = ["log", "small_rng"] }

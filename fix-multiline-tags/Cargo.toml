@@ -1,0 +1,10 @@
+[package]
+name = "fix-multiline-tags"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dataset-tools = { path = ".." }
+walkdir = "2.5.0"
+tokio = { version = "1.41.0", features = ["full"] }
+anyhow = "1.0.92"
