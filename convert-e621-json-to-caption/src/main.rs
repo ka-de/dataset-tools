@@ -15,7 +15,6 @@ use dataset_tools::{ process_json_file, walk_directory, write_to_file };
 use regex::Regex;
 use serde_json::Value;
 use std::{ path::{ Path, PathBuf }, sync::Arc };
-use tokio::io;
 use std::env;
 
 /// Patterns of tags to be ignored during processing.
