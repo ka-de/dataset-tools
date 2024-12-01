@@ -89,6 +89,10 @@ async fn main() -> Result<()> {
         Commands::Pedantic { directory } => {
             let files = check_pedantic(directory).await?;
             if !files.is_empty() {
+                eprintln!("The following files are missing the required warning:");
+                for file in files.iter() {
+                    eprintln!("{}", file.display());
+                }
                 std::process::exit(1);
             }
         }
