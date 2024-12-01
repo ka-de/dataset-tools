@@ -59,3 +59,40 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[tokio::test]
+    async fn test_keep_tokens() {
+        let temp_dir = TempDir::new().unwrap();
+        let keep_tokens = ["feral", "weasel"];
+        
+        // Create test caption file
+        let original = "feral, cat, dog, weasel, running\nThis is a description";
+        let expected = "feral, weasel ||| cat, dog, running, This is a description";
+
+        let file_path = temp_dir.path().join("test.txt");
+        fs::write(&file_path, original).unwrap();
+
+        // Process the file
+        let content = read_file_content(file_path.to_str().unwrap()).await.unwrap();
+        let (tags, sentences) = split_content(&content);
+
+        let filtered_tags: Vec<_> = tags
+            .into_iter()
+            .filter(|tag| !keep_tokens.contains(tag))
+            .collect();
+
+        let new_content = format!(
+            "{} ||| {}, {}",
+            keep_tokens.join(", "),
+            filtered_tags.join(","),
+            sentences
+        );
+
+        assert_eq!(new_content, expected);
+    }
+}

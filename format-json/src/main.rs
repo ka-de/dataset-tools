@@ -25,3 +25,30 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[tokio::test]
+    async fn test_format_json() {
+        let temp_dir = TempDir::new().unwrap();
+        
+        // Create unformatted JSON file
+        let unformatted = r#"{"a":1,"b": 2,"c":    3}"#;
+        let expected = r#"{
+  "a": 1,
+  "b": 2,
+  "c": 3
+}"#;
+
+        let file_path = temp_dir.path().join("test.json");
+        fs::write(&file_path, unformatted).unwrap();
+
+        format_json_file(&file_path).await.unwrap();
+
+        let formatted = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(formatted.trim(), expected);
+    }
+}

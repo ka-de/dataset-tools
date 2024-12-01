@@ -207,22 +207,29 @@ async fn check_cargo_toml(path: &Path) -> Result<bool> {
     Ok(true)
 }
 
-async fn check_attributes(directory: &str) -> Result<()> {
+async fn check_attributes(directory: &str) -> Result<Vec<(PathBuf, usize, String)>> {
     let re = Arc::new(
         Regex::new(
             &format!(r"#\[\s*({})|#!\[\s*({})\]", ATTRIBUTES.join("|"), ATTRIBUTES.join("|"))
         ).context("Failed to create regex")?
     );
 
+    let found_attributes = Arc::new(Mutex::new(Vec::new()));
+
     walk_rust_files(directory, move |path: PathBuf| {
         let re = Arc::clone(&re);
+        let found_attributes = Arc::clone(&found_attributes);
         async move {
             let lines = read_lines(&path).await?;
             for (line_number, line) in lines.iter().enumerate() {
                 if re.is_match(line) {
-                    let start = line_number.saturating_sub(3);
-                    let end = (line_number + 2).min(lines.len());
-
+                    found_attributes.lock().await.push((
+                        path.clone(),
+                        line_number + 1,
+                        line.to_string(),
+                    ));
+                    
+                    // Still print for CLI usage
                     stdout()
                         .execute(SetForegroundColor(Color::Magenta))
                         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
@@ -231,6 +238,8 @@ async fn check_attributes(directory: &str) -> Result<()> {
                         .execute(ResetColor)
                         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
+                    let start = line_number.saturating_sub(3);
+                    let end = (line_number + 2).min(lines.len());
                     for (i, line) in lines[start..end].iter().enumerate() {
                         if i + start == line_number {
                             let highlighted = re.replace_all(line, |caps: &regex::Captures| {
@@ -248,7 +257,7 @@ async fn check_attributes(directory: &str) -> Result<()> {
         }
     }).await.context("Failed to walk rust files")?;
 
-    Ok(())
+    Ok(found_attributes.lock().await.clone())
 }
 
 async fn check_multiline(directory: &str) -> Result<()> {
@@ -303,4 +312,110 @@ async fn check_empty_captions(directory: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    async fn create_test_file(dir: &Path, name: &str, content: &str) -> Result<PathBuf> {
+        let path = dir.join(name);
+        fs::write(&path, content)?;
+        Ok(path)
+    }
+
+    #[tokio::test]
+    async fn test_check_pedantic() {
+        let temp_dir = TempDir::new().unwrap();
+        
+        // Create test files
+        let file_with_warning = create_test_file(
+            temp_dir.path(),
+            "with_warning.rs",
+            "#![warn(clippy::all, clippy::pedantic)]\nfn main() {}"
+        ).await.unwrap();
+
+        let file_without_warning = create_test_file(
+            temp_dir.path(),
+            "without_warning.rs",
+            "fn main() {}"
+        ).await.unwrap();
+
+        // Test directory with mixed files
+        let result = check_pedantic(temp_dir.path().to_str().unwrap()).await.unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0], file_without_warning);
+
+        // Test single file with warning
+        let result = check_pedantic(file_with_warning.to_str().unwrap()).await.unwrap();
+        assert!(result.is_empty());
+
+        // Test single file without warning
+        let result = check_pedantic(file_without_warning.to_str().unwrap()).await.unwrap();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_check_optimizations() {
+        let temp_dir = TempDir::new().unwrap();
+        
+        // Create test Cargo.toml files
+        let optimized_toml = create_test_file(
+            temp_dir.path(),
+            "Cargo.toml",
+            r#"
+[profile.dev]
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3
+codegen-units = 1
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+            "#
+        ).await.unwrap();
+
+        let unoptimized_toml = create_test_file(
+            temp_dir.path().join("subdir"),
+            "Cargo.toml",
+            "[package]\nname = \"test\"\nversion = \"0.1.0\""
+        ).await.unwrap();
+
+        // Test directory with both files
+        let result = check_optimizations(temp_dir.path().to_str().unwrap()).await.unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0], unoptimized_toml);
+
+        // Test single optimized file
+        let result = check_optimizations(optimized_toml.to_str().unwrap()).await.unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_check_attributes() {
+        let temp_dir = TempDir::new().unwrap();
+        
+        let file_with_attrs = create_test_file(
+            temp_dir.path(),
+            "with_attrs.rs",
+            r#"
+#[derive(Debug)]
+#[cfg(test)]
+struct Test {}
+            "#
+        ).await.unwrap();
+
+        let result = check_attributes(temp_dir.path().to_str().unwrap()).await.unwrap();
+        
+        assert_eq!(result.len(), 2);
+        assert!(result.iter().all(|(path, _, _)| path == &file_with_attrs));
+        assert!(result.iter().any(|(_, _, line)| line.contains("derive")));
+        assert!(result.iter().any(|(_, _, line)| line.contains("cfg")));
+    }
 }
