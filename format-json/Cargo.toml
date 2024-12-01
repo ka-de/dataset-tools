@@ -10,3 +10,6 @@ serde_json = "1.0.133"
 walkdir = "2.5.0"
 tokio = { version = "1.41.1", features = ["full"] }
 anyhow = { version = "1.0.93", features = ["backtrace"] }
+
+[dev-dependencies]
+tempfile = "3.10.1"

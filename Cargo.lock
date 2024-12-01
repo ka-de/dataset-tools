@@ -853,6 +853,7 @@ dependencies = [
  "crossterm",
  "dataset-tools",
  "regex",
+ "tempfile",
  "tokio",
  "toml",
 ]
@@ -1769,6 +1770,7 @@ dependencies = [
  "anyhow",
  "dataset-tools",
  "serde_json",
+ "tempfile",
  "tokio",
  "walkdir",
 ]
@@ -2484,6 +2486,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dataset-tools",
+ "tempfile",
  "tokio",
  "walkdir",
 ]
