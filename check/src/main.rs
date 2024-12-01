@@ -104,7 +104,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn check_pedantic(directory: &str) -> Result<()> {
+async fn check_pedantic(directory: &str) -> Result<Vec<PathBuf>> {
     let files_without_warning = Arc::new(Mutex::new(Vec::new()));
 
     let target = PathBuf::from(directory);
@@ -125,7 +125,7 @@ async fn check_pedantic(directory: &str) -> Result<()> {
         }).await.context("Failed to walk through Rust files")?;
     } else {
         println!("Invalid target. Please provide a .rs file or a directory.");
-        return Ok(());
+        return Ok(Vec::new());
     }
 
     let files_without_warning = files_without_warning.lock().await;
@@ -134,12 +134,11 @@ async fn check_pedantic(directory: &str) -> Result<()> {
         for file in files_without_warning.iter() {
             println!("{}", file.display());
         }
-        std::process::exit(1);
     } else {
         println!("All Rust files contain the required warning.");
     }
 
-    Ok(())
+    Ok(files_without_warning.clone())
 }
 
 async fn check_optimizations(target: &str) -> Result<()> {
