@@ -77,11 +77,24 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Attributes { directory } => check_attributes(directory).await?,
-        Commands::Multiline { directory } => check_multiline(directory).await?,
-        Commands::Optimizations { directory } => check_optimizations(directory).await?,
-        Commands::Pedantic { directory } => check_pedantic(directory).await?,
-        Commands::EmptyCaptions { directory } => check_empty_captions(directory).await?,
+        Commands::Attributes { directory } => {
+            check_attributes(directory).await?;
+        }
+        Commands::Multiline { directory } => {
+            check_multiline(directory).await?;
+        }
+        Commands::Optimizations { directory } => {
+            check_optimizations(directory).await?;
+        }
+        Commands::Pedantic { directory } => {
+            let files = check_pedantic(directory).await?;
+            if !files.is_empty() {
+                std::process::exit(1);
+            }
+        }
+        Commands::EmptyCaptions { directory } => {
+            check_empty_captions(directory).await?;
+        }
     }
 
     Ok(())
@@ -108,7 +121,7 @@ async fn check_pedantic(directory: &str) -> Result<Vec<PathBuf>> {
         }).await.context("Failed to walk through Rust files")?;
     } else {
         println!("Invalid target. Please provide a .rs file or a directory.");
-        std::process::exit(1);
+        return Ok(Vec::new());
     }
 
     let files_without_warning = files_without_warning.lock().await;
@@ -117,7 +130,6 @@ async fn check_pedantic(directory: &str) -> Result<Vec<PathBuf>> {
         for file in files_without_warning.iter() {
             println!("{}", file.display());
         }
-        std::process::exit(1);
     } else {
         println!("All Rust files contain the required warning.");
     }
