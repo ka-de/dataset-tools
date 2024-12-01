@@ -31,7 +31,6 @@ mod tests {
     use super::*;
     use std::fs;
     use tempfile::TempDir;
-    use anyhow::Result;
 
     #[tokio::test]
     async fn test_format_json() {
@@ -48,7 +47,7 @@ mod tests {
         let file_path = temp_dir.path().join("test.json");
         fs::write(&file_path, unformatted).unwrap();
 
-        format_json_file(&file_path).await.unwrap();
+        format_json_file(file_path.clone()).await.unwrap();
 
         let formatted = fs::read_to_string(&file_path).unwrap();
         assert_eq!(formatted.trim(), expected);

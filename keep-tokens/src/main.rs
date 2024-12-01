@@ -65,7 +65,6 @@ mod tests {
     use super::*;
     use std::fs;
     use tempfile::TempDir;
-    use anyhow::Result;
 
     #[tokio::test]
     async fn test_keep_tokens() {
