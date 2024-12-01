@@ -10,6 +10,13 @@ async fn main() -> Result<()> {
         .unwrap_or_else(|| ".".to_string());
 
     walk_directory(Path::new(&directory), "txt", |path| async move {
+        // Skip specific files
+        if let Some(file_name) = path.file_name().and_then(|f| f.to_str()) {
+            if file_name.contains("wordfreq.txt") || file_name.contains("sample-prompts.txt") {
+                return Ok(());
+            }
+        }
+
         // Read file content
         let content = read_file_content(path.to_str().unwrap()).await?;
         
