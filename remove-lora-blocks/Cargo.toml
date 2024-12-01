@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 dataset-tools = { path = ".." }
 walkdir = "2.5.0"
-tokio = { version = "1.40.0", features = ["full"] }
-anyhow = { version = "1.0.89", features = ["backtrace"] }
+tokio = { version = "1.41.1", features = ["full"] }
+anyhow = { version = "1.0.93", features = ["backtrace"] }
 safetensors = "0.4.5"
 memmap2 = "0.9.5"

@@ -6,8 +6,8 @@ edition = "2021"
 
 [dependencies]
 dataset-tools = { path = ".." }
-regex = "1.11.0"
+regex = "1.11.1"
 walkdir = "2.5.0"
-serde_json = "1.0.128"
-tokio = { version = "1.40.0", features = ["full"] }
-anyhow = { version = "1.0.89", features = ["backtrace"] }
+serde_json = "1.0.133"
+tokio = { version = "1.41.1", features = ["full"] }
+anyhow = { version = "1.0.93", features = ["backtrace"] }

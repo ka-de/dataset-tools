@@ -13,11 +13,11 @@ log = "0.4.22"
 env_logger = "0.11.5"
 crossterm = "0.28.1"
 #kmeans_colors = "0.6.0"
-image = "0.25.2"
+image = "0.25.5"
 #palette = "0.7.6"
-serde_json = "1.0.128"
+serde_json = "1.0.133"
 walkdir = "2.5.0"
-regex = "1.11.0"
+regex = "1.11.1"
 #tabled = "0.15.0"
 #nalgebra = "0.33.0"
 #approx = "0.5.1"
@@ -25,11 +25,11 @@ regex = "1.11.0"
 #colorous = "1.0.14"
 safetensors = "0.4.5"
 memmap2 = "0.9.5"
-anyhow = { version = "1.0.89", features = ["backtrace"] }
-tokio = { version = "1.40.0", features = ["full"] }
-candle-core = { version = "0.7.2", features = ["mkl"] }
+anyhow = { version = "1.0.93", features = ["backtrace"] }
+tokio = { version = "1.41.1", features = ["full"] }
+candle-core = { version = "0.8.0", features = ["mkl"] }
 candle-einops = { git = "https://github.com/tomsanbear/candle-einops" }
 octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
-redis = { version = "0.27.2", features = ["aio", "tokio-comp"] }
-url = "2.5.2"
+redis = { version = "0.27.5", features = ["aio", "tokio-comp"] }
+url = "2.5.4"
 getopts = "0.2.21"
