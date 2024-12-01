@@ -87,7 +87,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn check_pedantic(directory: &str) -> Result<()> {
+async fn check_pedantic(directory: &str) -> Result<Vec<PathBuf>> {
     let files_without_warning = Arc::new(Mutex::new(Vec::new()));
 
     let target = PathBuf::from(directory);
@@ -122,7 +122,7 @@ async fn check_pedantic(directory: &str) -> Result<()> {
         println!("All Rust files contain the required warning.");
     }
 
-    Ok(())
+    Ok(files_without_warning.clone())
 }
 
 async fn check_optimizations(target: &str) -> Result<()> {
