@@ -33,3 +33,5 @@ octocrab = { git = "https://github.com/XAMPPRocky/octocrab" }
 redis = { version = "0.27.5", features = ["aio", "tokio-comp"] }
 url = "2.5.4"
 getopts = "0.2.21"
+jxl-oxide = { version = "0.10.2", features = ["image"] }
+
