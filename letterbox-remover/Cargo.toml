@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 dataset-tools = { path = ".." }
-image = { version = "0.25.5" }
+image = { version = "0.25.5", features = ["png"] }
 walkdir = "2.5.0"
 tokio = { version = "1.41.1", features = ["full", "macros"] }
+jxl-oxide = { version = "0.10.2", features = ["image"] }
