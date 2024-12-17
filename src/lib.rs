@@ -523,10 +523,11 @@ pub async fn delete_files_with_extension(target_dir: &Path, extension: &str) -> 
 /// Returns an `io::Error` if there's an issue with image processing or file operations.
 #[must_use = "Processes an image to remove letterboxing and requires handling of the result to ensure proper image modification"]
 pub async fn remove_letterbox(input_path: &Path) -> io::Result<()> {
+    // Handle all image formats through image crate
     let img_bytes = fs::read(input_path).await?;
-    let mut img = image
-        ::load_from_memory(&img_bytes)
+    let img = image::load_from_memory(&img_bytes)
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+
     let (width, height) = img.dimensions();
 
     let mut top = 0;
@@ -574,7 +575,7 @@ pub async fn remove_letterbox(input_path: &Path) -> io::Result<()> {
         }
     }
 
-    let cropped = img.crop(left, top, right - left + 1, bottom - top + 1);
+    let cropped = img.crop_imm(left, top, right - left + 1, bottom - top + 1);
     let mut buf = Vec::new();
     cropped
         .write_to(&mut std::io::Cursor::new(&mut buf), ImageFormat::Png)
