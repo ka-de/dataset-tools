@@ -45,8 +45,6 @@
 // Turn clippy into a real nerd
 #![warn(clippy::all, clippy::pedantic)]
 
-extern crate image;
-
 use std::{ sync::Arc, path::{ Path, PathBuf } };
 use log::{ info, warn };
 use walkdir::{ DirEntry, WalkDir };
@@ -364,7 +362,7 @@ pub async fn process_safetensors_file(path: &Path) -> Result<()> {
 #[must_use = "Determines if the path is an image file and the result should be checked"]
 pub fn is_image_file(path: &Path) -> bool {
     match path.extension().and_then(|e| e.to_str()) {
-        Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png"),
+        Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png" | "jxl"),
         None => false,
     }
 }
